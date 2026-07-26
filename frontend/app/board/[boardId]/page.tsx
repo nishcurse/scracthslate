@@ -1,7 +1,12 @@
 import Whiteboard from "@/components/whiteboard/Whiteboard"
 
-export default function BoardPage(){
-    return <>
-        < Whiteboard />
-    </>
+type  Props = {
+    params: Promise<{
+        boardId : string; 
+    }>
+}; 
+
+export default async function BoardPage({ params } : Props){
+    const {boardId}  = await params; 
+    return <Whiteboard boardId={boardId} />
 }

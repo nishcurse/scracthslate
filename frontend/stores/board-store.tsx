@@ -30,19 +30,22 @@ export const  useBoardStore = create<BoardStore>((set) => ({
             delete objects[id]
             return { objects };
         }),
-    updateObject : (id, changes) => 
-        set((state) => {
-            const object = state.objects[id]; 
-            if(!object){
-                return state;
-            }
+        updateObject: (id, changes) =>
+            set((state) => {
+                const object = state.objects[id];
 
-            return {
-                ...state.objects, 
-                [id] : {
-                    ...object, 
-                    ...changes, 
-                } as BoardObject,
-            }
+                if (!object) {
+                return state;
+                }
+
+                return {
+                objects: {
+                    ...state.objects,
+                    [id]: {
+                    ...object,
+                    ...changes,
+                    } as BoardObject,
+                },
+                };
         }),
 }))
