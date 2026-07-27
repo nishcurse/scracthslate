@@ -1,0 +1,1 @@
+export type Tool = "select" | "pen"; // will update in future saare tools daal dunga hehe

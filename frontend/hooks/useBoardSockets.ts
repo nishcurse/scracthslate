@@ -15,7 +15,24 @@ type serverEvent =
     type : "object:update"; 
     id : string; 
     changes: Partial<BoardObject>;
-}; 
+}
+    |
+{
+    type : "board:snapshot"; 
+    objects : Record<string, BoardObject>; 
+}
+    |
+{
+    type : "object:delete"; 
+    id : string;   
+}
+    |
+{
+    type : "stroke:append"; 
+    id : string; 
+    points : number[];
+}
+; 
 
 export function useBoardSocket(boardId: string){
     const socketRef = useRef<WebSocket | null>(null); 
@@ -30,11 +47,20 @@ export function useBoardSocket(boardId: string){
             console.log("receieved" , message);
             const store = useBoardStore.getState();
             switch(message.type){
+                case "board:snapshot":
+                    store.setObject(message.objects); 
+                    break;
                 case "object:create": 
                     store.addObject(message.object); 
                     break;
                 case "object:update": 
                     store.updateObject(message.id,message.changes);
+                    break;
+                case "object:delete": 
+                    store.removeObject(message.id); 
+                    break;
+                case "stroke:append": 
+                    store.appendPoints(message.id, message.points)
                     break;
                 default: 
                     break;

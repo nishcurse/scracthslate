@@ -9,4 +9,10 @@ export type Rectangle = {
   height: number;
 };
 
-export type BoardObject = Rectangle;
+export type Freehand = {
+  id : string; 
+  type : "freehand"; 
+  points : number[];
+}
+
+export type BoardObject = Rectangle | Freehand;
