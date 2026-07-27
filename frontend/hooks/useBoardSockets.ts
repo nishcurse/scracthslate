@@ -3,36 +3,9 @@
 import {useEffect, useRef} from "react"
 
 import {useBoardStore} from "@/stores/board-store"
-import type { BoardObject } from "@/types/board"
+import type {serverEvent} from "@/types/socket"
 
-type serverEvent = 
-{
-    type: "object:create";   
-    object: BoardObject ; 
-}
-    |
-{
-    type : "object:update"; 
-    id : string; 
-    changes: Partial<BoardObject>;
-}
-    |
-{
-    type : "board:snapshot"; 
-    objects : Record<string, BoardObject>; 
-}
-    |
-{
-    type : "object:delete"; 
-    id : string;   
-}
-    |
-{
-    type : "stroke:append"; 
-    id : string; 
-    points : number[];
-}
-; 
+
 
 export function useBoardSocket(boardId: string){
     const socketRef = useRef<WebSocket | null>(null); 
