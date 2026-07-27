@@ -1,3 +1,4 @@
+
 export type Rectangle = {
   id: string;
   type: "rectangle";
@@ -14,5 +15,27 @@ export type Freehand = {
   type : "freehand"; 
   points : number[];
 }
+export type Ellipse = {
+  id : string;
+  type : "ellipse";
+  x : number; 
+  y : number; 
+  radiusX : number; 
+  radiusY : number;
+}; 
 
-export type BoardObject = Rectangle | Freehand;
+export type Line = {
+  id : string; 
+  type : "line"; 
+  points : number[];
+};
+
+
+export type BoardObject = 
+Rectangle 
+| 
+Freehand
+|
+Line
+|
+Ellipse;
