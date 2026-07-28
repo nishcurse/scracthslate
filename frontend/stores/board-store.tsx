@@ -9,7 +9,9 @@ type BoardStore = {
     setActivetool : (newTool : Tool) => void; 
     appendPoints: (id: string , points: number[]) => void;
     setObject: (objects : Record<string , BoardObject>) => void; 
-
+    selectObjectId: string | null;
+    selectObject : (id: string) => void;
+    clearSelection : () => void;
     addObject: (object : BoardObject) => void; 
 
     updateObject : (
@@ -23,6 +25,11 @@ type BoardStore = {
 export const  useBoardStore = create<BoardStore>((set) => ({
     objects : {},
     activetool: "select", 
+    selectObjectId : null,
+    selectObject: (id) => set({selectObjectId : id}), 
+    clearSelection: () => {
+        set({selectObjectId : null});
+    }, 
     setActivetool: (newTool) => set({activetool: newTool}),
     setObject: (objects) => set({objects}),
     addObject : (object) => 
@@ -36,7 +43,9 @@ export const  useBoardStore = create<BoardStore>((set) => ({
         set((state) => {
             const objects = {...state.objects}; 
             delete objects[id]
-            return { objects };
+            return { objects,
+                selectObjectId : (state.selectObjectId === id ? null : state.selectObjectId),
+            };
         }),
     updateObject: (id, changes) =>
         set((state) => {

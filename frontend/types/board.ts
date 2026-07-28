@@ -1,5 +1,6 @@
 
 export type Rectangle = {
+
   id: string;
   type: "rectangle";
 
@@ -8,6 +9,7 @@ export type Rectangle = {
 
   width: number;
   height: number;
+
 };
 
 export type Freehand = {
@@ -16,12 +18,14 @@ export type Freehand = {
   points : number[];
 }
 export type Ellipse = {
+  
   id : string;
   type : "ellipse";
   x : number; 
   y : number; 
   radiusX : number; 
   radiusY : number;
+
 }; 
 
 export type Line = {

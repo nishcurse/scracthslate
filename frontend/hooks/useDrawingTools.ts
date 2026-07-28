@@ -6,6 +6,7 @@ import {useBoardStore} from "@/stores/board-store"
 import {serverEvent} from "@/types/socket"
 import {BoardObject} from "@/types/board"
 
+
 type props = {
     stageRef : React.RefObject<konva.Stage | null>; 
     send: (message: serverEvent) => void;
@@ -118,6 +119,83 @@ export function useDrawingTools({
             changes
         });
     };
+    const startEllipse = (x: number, y: number) =>{
+        const object : BoardObject = {
+            id : crypto.randomUUID(),
+            type : "ellipse", 
+            x, 
+            y,
+            radiusX: 0, 
+            radiusY: 0,
+        }; 
+        shapeIdRef.current = object.id; 
+        shapeStartRef.current = {x,y}; 
+
+        addObject(object);
+        send({
+            type: "object:create", 
+            object,
+        })
+    };  
+    const resizeEllipse = (currX : number , currY : number)=>{
+        const id = shapeIdRef.current; 
+        const start = shapeStartRef.current; 
+        if(!id || !start){
+            return;
+        }
+        const  width = Math.abs(currX - start.x); 
+        const height = Math.abs(currY - start.y);
+        const changes = {
+            x : Math.min(currX, start.x) + width/2 , 
+            y : Math.min(currY, start.y) + height/2,
+            radiusX : width/2, 
+            radiusY : height/2, 
+        }
+        updateObject(id, changes); 
+        send({
+            type : "object:update", 
+            id, 
+            changes, 
+        }); 
+    }; 
+    // line  
+    const startLine = (x : number, y : number) => {
+        const object : BoardObject = {
+            id : crypto.randomUUID(), 
+            type : "line", 
+            points : [x, y, x, y],
+        }; 
+        shapeIdRef.current = object.id; 
+        addObject(object); 
+
+        send({
+            type: "object:create", 
+            object
+        }); 
+
+    }; 
+    const resizeLine = (currX : number , currY : number) => {
+        const id = shapeIdRef.current; 
+        if(!id){
+            return; 
+        }
+        const object = useBoardStore.getState().objects[id];
+        if(!object || object["type"] !== "line"){
+            return;
+        } 
+        const changes = {points : [
+            object.points[0], 
+            object.points[1], 
+            currX, 
+            currY,
+        ]}; 
+        updateObject(id, changes); 
+        send({
+            type : "object:update",
+            id, 
+            changes
+        });
+    }; 
     const handlePointerDown = () => {
 
         const stage = stageRef.current;
@@ -136,6 +214,12 @@ export function useDrawingTools({
                 break;
             case "rectangle": 
                 startRectangle(position.x, position.y);
+                break;
+            case "ellipse": 
+                startEllipse(position.x, position.y); 
+                break;
+            case "line": 
+                startLine(position.x , position.y); 
                 break;
             default: 
                 break;
@@ -159,6 +243,12 @@ export function useDrawingTools({
             case "rectangle": 
                 resizeRectangle(position.x , position.y);
                 break;
+            case "ellipse": 
+                resizeEllipse(position.x, position.y);
+                break;
+            case "line": 
+                resizeLine(position.x, position.y);
+                break;
             default: 
                 break;
         }
@@ -175,6 +265,14 @@ export function useDrawingTools({
             case "rectangle": 
                 shapeIdRef.current = null; 
                 shapeStartRef.current = null;
+                break;
+            case "ellipse": 
+                shapeIdRef.current = null; 
+                shapeStartRef.current = null;
+                break;
+            case "line": 
+                shapeIdRef.current = null; 
+                break;
         }
     };
 

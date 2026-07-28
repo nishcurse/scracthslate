@@ -1,16 +1,18 @@
 "use client";
 
-import { useRef } from "react";
+import { act, useRef } from "react";
 import Konva from "konva";
 import { Layer, Stage } from "react-konva";
 
 import FreehandObject from "./objects/freehand";
 import RectangleObject from "./objects/rectangle";
+import EllipseObject from "./objects/ellips"
+import LineObject from "./objects/line"
 
 import { useBoardStore } from "@/stores/board-store";
 import { useWindowSize } from "@/hooks/useWindowSize";
 import type { serverEvent } from "@/types/socket";
-import {useDrawingTools} from "@/hooks/useDrawingTools"
+import { useDrawingTools } from "@/hooks/useDrawingTools"
 
 
 type Props = {
@@ -26,7 +28,25 @@ export default function WhiteboardCanvas({ send }: Props) {
 
     const updateObject = useBoardStore((state) => state.updateObject);
     const removeObject = useBoardStore((state) => state.removeObject);
-    const {handlePointerDown, handlePointerMove , handlePointerUp} = useDrawingTools({stageRef , send}); 
+    const { handlePointerDown, handlePointerMove, handlePointerUp } = useDrawingTools({ stageRef, send });
+    const selectObjectId = useBoardStore((st) => st.selectObjectId);
+    const selectObject = useBoardStore((st) => st.selectObject);
+    const clearSelection = useBoardStore((st) => st.clearSelection );
+
+    const handleSelectObject = (id : string) => {
+        if(activetool !== "select"){
+            return;
+        }
+        selectObject(id);
+    }; 
+    const handleStagePointerDown = (event : Konva.KonvaEventObject<PointerEvent>) =>{
+        if(activetool === "select" && event.target.getStage()){
+            clearSelection();
+        }
+        handlePointerDown();
+    }; 
+
+    
 
 
     const moveObject = (id: string, x: number, y: number) => {
@@ -47,12 +67,12 @@ export default function WhiteboardCanvas({ send }: Props) {
         });
     };
 
-   
-    
 
-    
 
-    
+
+
+
+
 
 
 
@@ -61,7 +81,7 @@ export default function WhiteboardCanvas({ send }: Props) {
             ref={stageRef}
             width={width}
             height={height}
-            onPointerDown={handlePointerDown}
+            onPointerDown={handleStagePointerDown}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
         >
@@ -76,6 +96,8 @@ export default function WhiteboardCanvas({ send }: Props) {
                                     draggable={activetool === "select"}
                                     onMove={moveObject}
                                     onDelete={deleteObject}
+                                    onSelect={handleSelectObject}
+                                    selected = {selectObjectId === object.id}
                                 />
                             );
 
@@ -84,6 +106,23 @@ export default function WhiteboardCanvas({ send }: Props) {
                                 <FreehandObject
                                     key={object.id}
                                     object={object}
+                                    onSelect={handleSelectObject}
+                                />
+                            );
+                        case "ellipse":
+                            return (
+                                <EllipseObject
+                                    key={object.id}
+                                    object={object}
+                                    onSelect={handleSelectObject}
+                                />
+                            );
+                        case "line":
+                            return (
+                                <LineObject
+                                    key={object.id}
+                                    object={object}
+                                    onSelect={handleSelectObject}
                                 />
                             );
                     }
