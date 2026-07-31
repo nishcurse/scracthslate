@@ -49,6 +49,8 @@ class ConnectionManager:
         board = self.boards.get(board_id)
         if not board: 
             return
+        if object_id not in board: 
+            return 
         obj = board.get(object_id)
         if not obj: 
             return 

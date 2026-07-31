@@ -41,11 +41,9 @@ export const  useBoardStore = create<BoardStore>((set) => ({
         })), 
     removeObject : (id) => 
         set((state) => {
-            const objects = {...state.objects}; 
-            delete objects[id]
-            return { objects,
-                selectObjectId : (state.selectObjectId === id ? null : state.selectObjectId),
-            };
+            const newobjects = {...state.objects}; 
+            delete newobjects[id]
+            return { objects : newobjects };
         }),
     updateObject: (id, changes) =>
         set((state) => {

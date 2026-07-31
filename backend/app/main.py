@@ -40,7 +40,7 @@ async def board_websocket(
                     message["id"], 
                     message["points"],
                 )
-            
+                
             await manager.broadcast(
                 board_id=board_id, 
                 message=message, 

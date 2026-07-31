@@ -1,5 +1,8 @@
 import {Rect} from "react-konva"
 import type {Rectangle} from "@/types/board"
+import Konva from "konva";
+
+type rectangleTransform = Omit<Rectangle, 'type' | 'id'>;
 
 type Props = {
   object: Rectangle;
@@ -13,7 +16,9 @@ type Props = {
 
   onDelete: (id: string) => void;
   onSelect: (id : string) => void; 
-  selected : boolean;
+  onTransform : (id : string,
+    changes: rectangleTransform
+  ) => void;
 };
 
 export default function RectangleObject({
@@ -22,17 +27,18 @@ export default function RectangleObject({
   onMove,
   onSelect,
   onDelete,
-  selected, 
+  onTransform,
 }: Props) {
   return (
     <Rect
       id = {object.id}
       x={object.x}
       y={object.y}
+      rotation={object.rotation ?? 0}
       width={object.width}
       height={object.height}
       fill="white"
-      stroke={selected ? "#2563eb" : "black"}
+      stroke= "black"
       strokeWidth={2}
       draggable={draggable}
       onDragMove={(event) => {
@@ -44,8 +50,32 @@ export default function RectangleObject({
       }}
       onClick={() => onSelect(object.id)}
       onTap={() => onSelect(object.id)}
-      onDblClick={() => {
-        onDelete(object.id);
+      onTransformEnd={(e: Konva.KonvaEventObject<Event>) => {
+        const node = e.target;
+
+        const scaleX = node.scaleX();
+        const scaleY = node.scaleY();
+
+        const width = Math.max(
+          10,
+          node.width() * scaleX,
+        );
+
+        const height = Math.max(
+          10,
+          node.height() * scaleY,
+        );
+
+        node.scaleX(1);
+        node.scaleY(1);
+
+        onTransform(object.id, {
+          x: node.x(),
+          y: node.y(),
+          width,
+          height,
+          rotation: node.rotation(),
+        });
       }}
     />
   );  

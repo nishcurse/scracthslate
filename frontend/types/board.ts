@@ -1,35 +1,32 @@
+export type BaseBoardObject = {
+  id : string; 
+  x : number; 
+  y : number;
+  rotation : number;
+}
 
-export type Rectangle = {
+export type Rectangle = BaseBoardObject & {
 
-  id: string;
   type: "rectangle";
-
-  x: number;
-  y: number;
-
   width: number;
   height: number;
 
 };
 
-export type Freehand = {
-  id : string; 
+export type Freehand = BaseBoardObject & {
   type : "freehand"; 
   points : number[];
 }
-export type Ellipse = {
+export type Ellipse = BaseBoardObject & {
   
-  id : string;
   type : "ellipse";
-  x : number; 
-  y : number; 
   radiusX : number; 
   radiusY : number;
+  rotation : number;
 
 }; 
 
-export type Line = {
-  id : string; 
+export type Line = BaseBoardObject & {
   type : "line"; 
   points : number[];
 };

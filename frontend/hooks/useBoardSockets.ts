@@ -53,7 +53,6 @@ export function useBoardSocket(boardId: string){
             console.log("socket not open for sending");
             return; 
         }
-        console.log("sending" , message);
         socket.send(JSON.stringify(message));
     }; 
     return { send };
