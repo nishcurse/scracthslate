@@ -40,6 +40,12 @@ class ConnectionManager:
     def get_board(self, board_id: str): 
         return self.boards.get(board_id, {})
 
+    def get_object(self, board_id: str , object_id : str):
+        board = self.boards.get(board_id)
+        if board is None: 
+            return None
+        return board.get(object_id)
+
     def create_object(self, board_id: str, obj: dict): 
         if board_id not in self.boards: 
             self.boards[board_id] = {}
@@ -80,6 +86,15 @@ class ConnectionManager:
         if obj.get("type") != "freehand":
             return
         obj["points"].extend(points)
+
+    def has_board(self, board_id : str) -> bool:
+        return board_id in self.boards  
+
+    def sync_board(self, board_id: str, objects: list[dict]) :
+        self.boards[board_id] = {
+            obj["id"] : obj
+            for obj in objects
+        }
 
 
 

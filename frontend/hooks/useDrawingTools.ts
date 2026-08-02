@@ -5,6 +5,7 @@ import type konva from "konva";
 import { useBoardStore } from "@/stores/board-store"
 import { serverEvent } from "@/types/socket"
 import { BoardObject } from "@/types/board"
+import BoardPage from "@/app/board/[boardId]/page";
 
 
 type props = {
@@ -37,15 +38,14 @@ export function useDrawingTools({
         if (!drawingId || points == null || points?.length === 0) {
             return;
         }
-        console.log({
-            type: "flushing points",
-            points: points
-        });
+        const obj = useBoardStore.getState().objects[drawingId]; 
+        // right now we are sending whole object but in future i will create an event "stroke:compelete"
+        // to push the changes to db as whole
         send({
-            type: "stroke:append",
-            id: drawingId,
-            points,
-        });
+            type : "object:update", 
+            id : drawingId,
+            changes : obj,
+        })
         pendingPointsRef.current = [];
         lastSendTimeRef.current = performance.now();
     };
