@@ -11,11 +11,13 @@ class BoardManagementRepo:
     @staticmethod
     async def create_board(
         session : AsyncSession, 
+        owner_id : str,
         title : str = "Untitled Board",
     ) -> Board:
         board = Board(
             id = str(uuid4()), 
             title = title, 
+            owner_id=owner_id
         )
 
         session.add(board)

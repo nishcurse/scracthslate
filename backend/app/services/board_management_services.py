@@ -5,11 +5,13 @@ class boardManagementServices:
     async def create_board(
         self, 
         title : str,
+        owner_id : str,
     ): 
         async with SessionLocal() as session: 
             return await BoardManagementRepo.create_board(
                 session=session, 
                 title = title,
+                owner_id=owner_id,
             )
 
     async def list_board(

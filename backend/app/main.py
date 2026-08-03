@@ -11,6 +11,7 @@ from app.repo.board_repo import BoardRepo
 from app.services.boardservices import BoardService
 
 from app.routes.boards import router as board_router
+from app.routes.auth import router as auth_router
 
 boardservice = BoardService()
 
@@ -26,6 +27,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
+app.include_router(auth_router)
 app.include_router(board_router)
 
 @app.get("/")

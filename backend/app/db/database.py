@@ -4,13 +4,11 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
-
-
-DATABASE_URL="postgresql+asyncpg://scratchslate:scratchslate@localhost:5432/scratchslate"
+from app.core.config import settings
 
 
 engine = create_async_engine(
-    DATABASE_URL,
+    settings.DATABASE_URL,
     echo=True,
 )
 

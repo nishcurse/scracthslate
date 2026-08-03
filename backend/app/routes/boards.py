@@ -1,8 +1,11 @@
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter,HTTPException , Depends
 from app.services.board_management_services import boardManagementServices 
 
 # types importssss
 from app.schemas.boards import CreateBoardRequest,BoardResponse,RenameBoardRequest
+from app.db.models import User
+
+from app.auth.dependencies import get_current_user
 
 service = boardManagementServices()
 
@@ -14,9 +17,11 @@ router = APIRouter(
 @router.post("/" , response_model=BoardResponse)
 async def create_board(
     req : CreateBoardRequest,
+    current_user : User = Depends(get_current_user)
 ): 
     board = await service.create_board(
         title=req.title,
+        owner_id=current_user.id,
     )
     return board
 
