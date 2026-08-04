@@ -21,13 +21,13 @@ export function SectionHeading({
         >
             {badge && (
                 <div className="mb-5">
-                    <span className="shadow-brutal-sm inline-flex border-[3px] border-ink bg-acid px-3 py-1 font-[family:var(--font-mono)] text-xs font-bold uppercase tracking-[0.18em]">
+                    <span className="block font-[family:var(--font-mono)] text-xs font-bold uppercase tracking-widest text-ink/65">
                         {badge}
                     </span>
                 </div>
             )}
 
-            <h2 className="font-[family:var(--font-black)] text-[clamp(2.5rem,6vw,4.5rem)] leading-[0.92] uppercase tracking-[-0.03em]">
+            <h2 className="font-[family:var(--font-black)] text-[clamp(1.8rem,5vw,3rem)] leading-[0.95] uppercase tracking-tight">
                 {title}
             </h2>
 

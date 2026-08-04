@@ -84,8 +84,9 @@ export function FeatureCard({
 
             <p
                 className={`
-                    text-sm
-                    leading-relaxed
+                    text-xs
+                    font-medium
+                    sm:text-sm
                     ${style.description}
                 `}
             >
