@@ -1,12 +1,12 @@
-import { CTASection } from "./CTASection";
-import { DeveloperSection } from "./DeveloperSection";
-import { FeatureGrid } from "./FeatureGrid";
-import { Footer } from "./Footer";
-import { Hero } from "./Hero/Hero";
-import { Marquee } from "./Marquee";
 import { Navbar } from "./Navbar";
-import { PricingSection } from "./PricingSection";
+import { Hero } from "./Hero/Hero";
 import { WhySection } from "./WhySection/WhySection";
+import { Marquee } from "./Marquee/Marquee";
+import { FeatureGrid } from "./FeatureGrid/FeatureGrid";
+import { DeveloperSection } from "./DeveloperSection/DeveloperSection";
+import { PricingSection } from "./PricingSection/PricingSection";
+import { CTASection } from "./CTASection/CTASection";
+import { Footer } from "./Footer/footer";
 
 export function LandingPage() {
     return (
@@ -15,17 +15,11 @@ export function LandingPage() {
 
             <main>
                 <Hero />
-
                 <WhySection />
-
                 <Marquee />
-
                 <FeatureGrid />
-
                 <DeveloperSection />
-
                 <PricingSection />
-
                 <CTASection />
             </main>
 

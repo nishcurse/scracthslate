@@ -3,24 +3,41 @@ import Link from "next/link";
 interface LogoProps {
     href?: string;
     showSubtitle?: boolean;
+    compact?: boolean;
 }
 
 export function Logo({
     href = "/",
     showSubtitle = true,
+    compact = false,
 }: LogoProps) {
+    const containerSize = compact
+        ? "h-8 w-8"
+        : "h-9 w-9";
+
+    const textSize = compact
+        ? "text-sm"
+        : "text-lg";
+
     return (
         <Link
             href={href}
             className="flex items-center gap-3"
         >
-            <div className="shadow-brutal-sm grid h-9 w-9 place-items-center bg-ink text-acid">
-                <span className="font-[family:var(--font-black)] text-lg">
+            <div
+                className={`shadow-brutal-sm grid place-items-center bg-ink text-acid ${containerSize}`}
+            >
+                <span
+                    className={`font-[family:var(--font-black)] ${textSize}`}
+                >
                     S
                 </span>
             </div>
 
-            <div className="font-[family:var(--font-black)] text-lg uppercase tracking-tight">
+            <div
+                className={`font-[family:var(--font-black)] uppercase tracking-tight ${compact ? "text-sm" : "text-lg"
+                    }`}
+            >
                 ScratchSlate
 
                 {showSubtitle && (
