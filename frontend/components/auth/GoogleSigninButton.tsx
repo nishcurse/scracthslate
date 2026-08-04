@@ -1,29 +1,37 @@
+import { Icon } from "@iconify/react";
+
 interface GoogleSignInButtonProps {
     className?: string;
+    variant?: "navbar" | "hero";
 }
 
 export function GoogleSignInButton({
     className,
+    variant = "navbar",
 }: GoogleSignInButtonProps) {
+    const isHero = variant === "hero";
+
     return (
         <button
             className={`
-                shadow-brutal-sm
+                ${isHero ? "shadow-brutal border-[3px] px-8 py-4 text-sm tracking-wide" : "shadow-brutal-sm border-2 px-4 py-2.5 text-xs tracking-wider"}
                 btn-brutal
-                border-2
                 border-ink
                 bg-ink
-                px-4
-                py-2.5
-                text-xs
-                font-black
+                font-[family:var(--font-black)]
                 uppercase
-                tracking-wider
                 text-paper
+                ${isHero ? "inline-flex items-center gap-2" : ""}
                 ${className ?? ""}
             `}
         >
-            Sign In
+            {isHero && (
+                <Icon
+                    icon="logos:google-icon"
+                    className="text-lg"
+                />
+            )}
+            {isHero ? "Sign in with Google" : "Sign In"}
         </button>
     );
 }
