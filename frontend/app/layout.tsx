@@ -6,6 +6,7 @@ import {
   Archivo_Black,
   Space_Mono,
 } from "next/font/google";
+import GoogleProvider from "@/providers/google-providers";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -34,13 +35,11 @@ export default function RootLayout({
       lang="en"
       className={`${archivo.variable} ${archivoBlack.variable} ${spaceMono.variable}`}
     >
-      
       <body className="min-h-full flex flex-col">
         <GoogleProvider>
           {children}
         </GoogleProvider>
       </body>
-
     </html>
   );
 }

@@ -25,10 +25,10 @@ export function HeroActionButton({
                 gap-2
                 border-[3px]
                 border-ink
-                px-7
+                px-8
                 py-4
                 text-sm
-                font-black
+                font-[family:var(--font-black)]
                 uppercase
                 tracking-wide
                 ${variant === "primary"

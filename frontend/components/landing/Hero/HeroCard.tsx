@@ -30,18 +30,14 @@ export function HeroCard({
                 shadow-brutal
                 border-[3px]
                 border-ink
-                p-6
-                transition-transform
-                duration-150
-                hover:-translate-y-1
+                p-5
                 ${variants[variant].container}
             `}
         >
             <div
                 className={`
                     font-[family:var(--font-black)]
-                    text-5xl
-                    leading-none
+                    text-4xl
                     tracking-tight
                     ${variants[variant].value}
                 `}
@@ -49,7 +45,7 @@ export function HeroCard({
                 {value}
             </div>
 
-            <div className="mt-4 font-[family:var(--font-mono)] text-xs font-bold uppercase tracking-[0.18em] opacity-80">
+            <div className="mt-2 font-[family:var(--font-mono)] text-[11px] font-bold uppercase tracking-wide opacity-80">
                 {label}
             </div>
         </div>
