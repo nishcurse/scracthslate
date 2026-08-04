@@ -28,7 +28,7 @@ export function HeroActionButton({
                 px-8
                 py-4
                 text-sm
-                font-[family:var(--font-black)]
+                font-display
                 uppercase
                 tracking-wide
                 ${variant === "primary"

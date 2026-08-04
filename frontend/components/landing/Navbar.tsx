@@ -7,7 +7,7 @@ import { NAVIGATION } from "@/constants/navigation";
 export function Navbar() {
     return (
         <header className="sticky top-0 z-50 border-b-[3px] border-ink bg-paper">
-            <nav className="mx-auto flex h-[68px] max-w-[1240px] items-center justify-between px-5 sm:px-8">
+            <nav className="mx-auto flex h-[68px] max-w-310 items-center justify-between px-5 sm:px-8">
                 <Logo />
 
                 <div className="hidden gap-1 md:flex">

@@ -9,14 +9,14 @@ import { HeroFeature } from "./HeroFeature";
 export function Hero() {
     return (
         <section className="grid-bg border-b-[3px] border-ink py-14 sm:py-24">
-            <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+            <div className="mx-auto max-w-310 px-5 sm:px-8">
                 {/* Badge */}
                 <div className="mb-8 flex flex-wrap items-center gap-3">
-                    <span className="shadow-brutal-sm border-[3px] border-ink bg-acid px-3 py-1.5 font-[family:var(--font-mono)] text-xs font-bold uppercase tracking-wider">
+                    <span className="shadow-brutal-sm border-[3px] border-ink bg-acid px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wider">
                         {HERO.badge}
                     </span>
 
-                    <span className="font-[family:var(--font-mono)] text-xs font-bold uppercase tracking-wider text-ink/60">
+                    <span className="font-mono text-xs font-bold uppercase tracking-wider text-ink/60">
                         {HERO.version}
                     </span>
                 </div>
@@ -24,12 +24,12 @@ export function Hero() {
                 <div className="grid items-start gap-10 lg:grid-cols-[1.15fr_0.85fr]">
                     {/* Left */}
                     <div>
-                        <h1 className="font-[family:var(--font-black)] text-[clamp(2.5rem,8vw,5.5rem)] leading-[0.92] uppercase tracking-[-0.02em]">
+                        <h1 className="font-display text-[clamp(2.5rem,8vw,5.5rem)] leading-[0.92] uppercase tracking-[-0.02em]">
                             {HERO.title.first}
 
                             <br />
 
-                            <span className="inline-block bg-acid px-2 [box-decoration-break:clone] [-webkit-box-decoration-break:clone]">
+                            <span className="bg-acid px-2 box-decoration-clone">
                                 {HERO.title.highlight}
                             </span>
                         </h1>

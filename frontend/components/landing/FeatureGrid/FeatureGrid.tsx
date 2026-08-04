@@ -9,7 +9,7 @@ export function FeatureGrid() {
             id="features"
             className="grid-bg border-b-[3px] border-ink py-16 sm:py-24"
         >
-            <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+            <div className="mx-auto max-w-310 px-5 sm:px-8">
                 <SectionHeading
                     badge={FEATURES_SECTION.section}
                     title={FEATURES_SECTION.title}

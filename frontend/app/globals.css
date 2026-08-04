@@ -1,15 +1,13 @@
 @import "tailwindcss";
 
 @theme {
+  /* Breakpoints */
+  --breakpoint-xs: 430px;
+
   /* Colors */
   --color-paper: #f4f1ea;
   --color-ink: #000000;
   --color-acid: #e8ff00;
-
-  /* Fonts (we'll connect these in layout.tsx) */
-  --font-grotesk: var(--font-archivo);
-  --font-black: var(--font-archivo-black);
-  --font-mono: var(--font-space-mono);
 }
 
 html {
@@ -17,36 +15,57 @@ html {
 }
 
 body {
-  background: var(--color-paper);
-  color: var(--color-ink);
+  font-family: var(--font-archivo), sans-serif;
+  background: #f4f1ea;
+  color: #000;
   -webkit-font-smoothing: antialiased;
 }
 
-::selection {
-  background: var(--color-acid);
-  color: var(--color-ink);
+/* ---------- Font Utilities ---------- */
+
+.font-display {
+  font-family: var(--font-archivo-black), sans-serif;
 }
 
-/* ---------- Utilities ---------- */
+.font-body {
+  font-family: var(--font-archivo), sans-serif;
+}
+
+.font-mono {
+  font-family: var(--font-space-mono), monospace;
+}
+
+/* ---------- Selection ---------- */
+
+::selection {
+  background: #e8ff00;
+  color: #000;
+}
+
+/* ---------- Background ---------- */
 
 .grid-bg {
   background-image:
-    linear-gradient(to right, rgb(0 0 0 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(0 0 0 / 0.06) 1px, transparent 1px);
+    linear-gradient(to right, rgb(0 0 0 / 6%) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(0 0 0 / 6%) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
+/* ---------- Shadows ---------- */
+
 .shadow-brutal {
-  box-shadow: 8px 8px 0 0 black;
+  box-shadow: 8px 8px 0 #000;
 }
 
 .shadow-brutal-lg {
-  box-shadow: 14px 14px 0 0 black;
+  box-shadow: 14px 14px 0 #000;
 }
 
 .shadow-brutal-sm {
-  box-shadow: 5px 5px 0 0 black;
+  box-shadow: 5px 5px 0 #000;
 }
+
+/* ---------- Buttons ---------- */
 
 .btn-brutal {
   transition:
@@ -56,13 +75,15 @@ body {
 
 .btn-brutal:hover {
   transform: translate(2px, 2px);
-  box-shadow: 4px 4px 0 0 black;
+  box-shadow: 4px 4px 0 #000;
 }
 
 .btn-brutal:active {
   transform: translate(8px, 8px);
   box-shadow: none;
 }
+
+/* ---------- Marquee ---------- */
 
 .marquee-track {
   animation: marquee 22s linear infinite;
@@ -76,4 +97,11 @@ body {
   to {
     transform: translateX(-50%);
   }
+}
+
+/* ---------- Misc ---------- */
+
+.box-decoration-clone {
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }

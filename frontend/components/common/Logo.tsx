@@ -28,14 +28,14 @@ export function Logo({
                 className={`shadow-brutal-sm grid place-items-center bg-ink text-acid ${containerSize}`}
             >
                 <span
-                    className={`font-[family:var(--font-black)] ${textSize}`}
+                    className={`font-black ${textSize}`}
                 >
                     S
                 </span>
             </div>
 
             <div
-                className={`font-[family:var(--font-black)] uppercase tracking-tight ${compact ? "text-sm" : "text-lg"
+                className={`font-black uppercase tracking-tight ${compact ? "text-sm" : "text-lg"
                     }`}
             >
                 ScratchSlate

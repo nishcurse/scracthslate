@@ -5,8 +5,8 @@ import { CTA_SECTION } from "@/constants/landing";
 export function CTASection() {
     return (
         <section className="border-b-[3px] border-ink bg-acid py-20 sm:py-32">
-            <div className="mx-auto max-w-[1240px] px-5 text-center sm:px-8">
-                <h2 className="font-[family:var(--font-black)] text-[clamp(2rem,7vw,4.5rem)] uppercase leading-[0.9] tracking-[-0.02em]">
+            <div className="mx-auto max-w-310 px-5 text-center sm:px-8">
+                <h2 className="font-black text-[clamp(2rem,7vw,4.5rem)] uppercase leading-[0.9] tracking-[-0.02em]">
                     {CTA_SECTION.title.first}
 
                     <br />

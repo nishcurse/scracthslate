@@ -3,7 +3,7 @@ import { MARQUEE_ITEMS } from "@/constants/landing";
 export function Marquee() {
     return (
         <section className="overflow-hidden border-b-[3px] border-ink bg-ink py-4">
-            <div className="marquee-track flex whitespace-nowrap font-[family:var(--font-black)] text-lg uppercase tracking-tight text-acid sm:text-xl">
+            <div className="marquee-track flex whitespace-nowrap font-display text-lg uppercase tracking-tight text-acid sm:text-xl">
                 {[0, 1].map((copy) => (
                     <div
                         key={copy}

@@ -5,8 +5,8 @@ export const HERO = {
   version: "v1.0 / 1000+ teams",
 
   title: {
-    first: "Think. Jott.",
-    highlight: "More.",
+    first: "Think. Less",
+    highlight: "Do. More",
   },
 
   description:
@@ -238,5 +238,5 @@ export const FOOTER = {
 
   subtitle: "Whiteboard",
 
-  copyright: "Copyright 2026 / Built Raw",
+  copyright: "@Copyright 2026 / Built By Nish",
 } as const;

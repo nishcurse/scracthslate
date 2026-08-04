@@ -10,7 +10,7 @@ export function CodeWindow({
     return (
         <div className="shadow-brutal-lg overflow-hidden border-[3px] border-ink">
             <div className="flex items-center justify-between bg-ink px-4 py-3">
-                <span className="font-[family:var(--font-mono)] text-[11px] font-bold tracking-wider text-acid">
+                <span className="font-mono text-[11px] tracking-wider text-acid">
                     {filename}
                 </span>
 
@@ -21,7 +21,7 @@ export function CodeWindow({
                 </div>
             </div>
 
-            <pre className="overflow-x-auto bg-paper p-6 font-[family:var(--font-mono)] text-[13px] leading-relaxed text-ink">
+            <pre className="overflow-x-auto bg-paper p-6 font-mono text-[13px] leading-relaxed text-ink">
                 <code>{code}</code>
             </pre>
         </div>

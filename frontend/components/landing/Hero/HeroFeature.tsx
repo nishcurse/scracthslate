@@ -17,7 +17,7 @@ export function HeroFeature({
                 className="text-lg text-ink"
             />
 
-            <span className="font-[family:var(--font-mono)] text-xs font-bold uppercase tracking-wide text-ink/70">
+            <span className="font-mono text-xs font-bold uppercase tracking-wide text-ink/70">
                 {children}
             </span>
         </div>

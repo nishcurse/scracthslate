@@ -3,7 +3,7 @@ from app.repo.user_repo import UserRepo
 from app.auth.oidc import verify_google_token
 from app.core.config import settings
 from app.auth.jwt import create_access_token
-from app.schemas.auth import LoginResponse
+from app.schemas.auth import LoginResponse, UserResponse
 
 class AuthServices: 
 
@@ -46,8 +46,4 @@ class AuthServices:
         
        
         
-    async def get_current_user(
-        self, 
-        user_id: str,
-    ): 
-        pass
+    

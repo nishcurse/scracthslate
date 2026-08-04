@@ -34,7 +34,7 @@ export function Cursor({
                     border-2
                     border-ink
                     shadow-brutal-sm
-                    font-[family:var(--font-mono)]
+                    font-mono
                     text-[9px]
                     uppercase
                     font-bold

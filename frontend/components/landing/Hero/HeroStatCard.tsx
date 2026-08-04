@@ -39,7 +39,7 @@ export function HeroStatCard({
         >
             <div
                 className={`
-                    font-[family:var(--font-black)]
+                    font-display
                     text-4xl
                     tracking-tight
                     ${valueStyles[variant]}
@@ -48,7 +48,7 @@ export function HeroStatCard({
                 {value}
             </div>
 
-            <div className="mt-2 font-[family:var(--font-mono)] text-[11px] font-bold uppercase tracking-wide">
+            <div className="mt-2 font-mono text-[11px] font-bold uppercase tracking-wide">
                 {label}
             </div>
         </div>

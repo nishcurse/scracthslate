@@ -52,7 +52,7 @@ export function WhyCard({
             </div>
 
             <h3
-                className={`mb-3 font-[family:var(--font-black)] text-xl uppercase tracking-tight ${style.title}`}
+                className={`mb-3 font-black text-xl uppercase tracking-tight ${style.title}`}
             >
                 {title}
             </h3>

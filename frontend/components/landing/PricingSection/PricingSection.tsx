@@ -9,7 +9,7 @@ export function PricingSection() {
             id="pricing"
             className="grid-bg border-b-[3px] border-ink py-16 sm:py-24"
         >
-            <div className="mx-auto max-w-[1240px] px-5 sm:px-8">
+            <div className="mx-auto max-w-310 px-5 sm:px-8">
                 <div className="mb-12 flex flex-col items-end justify-between gap-6 sm:flex-row">
                     <SectionHeading
                         badge={PRICING_SECTION.section}

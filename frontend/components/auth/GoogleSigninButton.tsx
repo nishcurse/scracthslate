@@ -18,7 +18,7 @@ export function GoogleSignInButton({
                 btn-brutal
                 border-ink
                 bg-ink
-                font-[family:var(--font-black)]
+                font-display
                 uppercase
                 text-paper
                 ${isHero ? "inline-flex items-center gap-2" : ""}

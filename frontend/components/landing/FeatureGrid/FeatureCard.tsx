@@ -72,7 +72,7 @@ export function FeatureCard({
             <h3
                 className={`
                     mb-2
-                    font-[family:var(--font-black)]
+                    font-black
                     text-lg
                     uppercase
                     tracking-tight
