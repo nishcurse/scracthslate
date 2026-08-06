@@ -4,15 +4,19 @@ from app.auth.oidc import verify_google_token
 from app.core.config import settings
 from app.auth.jwt import create_access_token
 from app.schemas.auth import LoginResponse, UserResponse
+from app.auth.googleOauth import exchange_google_tokens
 
 class AuthServices: 
 
     async def login_with_google(
         self, 
-        token: str,
+        code: str,
     ): 
+        token = await exchange_google_tokens(
+            code=code,
+        )
         google_user = verify_google_token(
-            token=token, 
+            token=token["id_token"], 
             client_id=settings.GOOGLE_CLIENT_ID,
         )
         async with SessionLocal() as session: 

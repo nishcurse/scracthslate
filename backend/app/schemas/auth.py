@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 
 class GoogleLoginRequest(BaseModel):
-    token: str
+    code: str
 
 
 class LoginResponse(BaseModel): 

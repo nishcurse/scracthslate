@@ -10,6 +10,8 @@ class Settings(BaseSettings):
 
     JWT_ALGORITHM: str = "HS256"
 
+    GOOGLE_CLIENT_SECRET: str
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",

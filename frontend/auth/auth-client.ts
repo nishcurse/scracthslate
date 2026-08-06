@@ -6,9 +6,9 @@ interface LoginResponse {
 }
 
 class AuthClient {
-    async loginWithGoogle(token : string) : Promise<LoginResponse> {
+    async loginWithGoogle(code : string) : Promise<LoginResponse> {
             const response = await api.post("/auth/google" , {
-                token 
+                code 
             } )
           
             return response.data;

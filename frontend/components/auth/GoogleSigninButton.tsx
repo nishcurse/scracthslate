@@ -1,4 +1,8 @@
+"use client";
+
 import { Icon } from "@iconify/react";
+
+import {useGoogleAuth} from "@/auth/useGoogleAuth"
 
 interface GoogleSignInButtonProps {
     className?: string;
@@ -10,6 +14,7 @@ export function GoogleSignInButton({
     variant = "navbar",
 }: GoogleSignInButtonProps) {
     const isHero = variant === "hero";
+    const { signIn } = useGoogleAuth();
 
     return (
         <button
@@ -24,6 +29,7 @@ export function GoogleSignInButton({
                 ${isHero ? "inline-flex items-center gap-2" : ""}
                 ${className ?? ""}
             `}
+            onClick={signIn}
         >
             {isHero && (
                 <Icon

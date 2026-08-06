@@ -1,7 +1,9 @@
 import "./globals.css";
 
 import { Archivo, Archivo_Black, Space_Mono } from "next/font/google";
-import GoogleProvider  from "@/providers/google-providers"
+import {AuthProvider} from "@/auth/auth-provider"
+import GoogleProvider from "@/providers/google-providers"
+import { envProxy } from "next/dist/build/turborepo-access-trace/env";
 
 const archivo = Archivo({
   subsets: ["latin"],
@@ -47,8 +49,11 @@ export default function RootLayout({
         `}
       > 
       <GoogleProvider>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </GoogleProvider>
+
       </body>
     </html>
   );

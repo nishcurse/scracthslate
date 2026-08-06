@@ -18,7 +18,7 @@ service =AuthServices()
 )
 async def login(request : GoogleLoginRequest):
     return await service.login_with_google(
-        token= request.token
+        code= request.code
     )
 
 @router.get(
