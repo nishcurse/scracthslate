@@ -26,11 +26,19 @@ body {
 .font-display {
   font-family: var(--font-archivo-black), sans-serif;
 }
-
+ 
 .font-body {
   font-family: var(--font-archivo), sans-serif;
 }
-
+ 
+.font-grotesk {
+  font-family: var(--font-archivo), sans-serif;
+}
+ 
+.font-black {
+  font-family: var(--font-archivo-black), sans-serif;
+}
+ 
 .font-mono {
   font-family: var(--font-space-mono), monospace;
 }
@@ -104,4 +112,18 @@ body {
 .box-decoration-clone {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 12px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: #f4f1ea;
+  border-left: 3px solid #000000;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #000000;
+  border: 2px solid #f4f1ea;
 }

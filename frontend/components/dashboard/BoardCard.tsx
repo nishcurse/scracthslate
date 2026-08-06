@@ -1,54 +1,62 @@
 "use client";
 
 import React from "react";
+import { Icon } from "@iconify/react";
 import type { Board } from "./types";
 
 type Props = {
   board: Board;
   onDelete: (id: string) => void;
-  onOpen?: (id: string) => void;
+  isRemoving?: boolean;
 };
 
-export function BoardCard({ board, onDelete, onOpen }: Props) {
+export function BoardCard({ board, onDelete, isRemoving = false }: Props) {
   return (
-    <article className="rounded-sm border-[3px] border-ink bg-paper p-4 shadow-brutal">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-bold font-display">{board.title}</h3>
-            <span className="border-[2px] border-ink bg-acid px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-[0.2em]">
-              {board.status ?? "draft"}
-            </span>
-          </div>
-
-          {board.description && (
-            <p className="mt-2 text-sm leading-relaxed text-ink/70 font-body">{board.description}</p>
-          )}
-
-          <div className="mt-4 flex flex-wrap gap-3 text-xs font-bold uppercase tracking-[0.2em] font-mono text-ink/70">
-            <span>{board.members ?? 0} members</span>
-            <span>{board.createdAt ?? "just now"}</span>
-          </div>
+    <div
+      className={`group block border-[3px] border-ink bg-white shadow-brutal btn-brutal transition-all duration-200 ${
+        isRemoving ? "scale-[0.95] opacity-0" : "opacity-100"
+      }`}
+    >
+      <div className="grid-bg relative aspect-[16/10] overflow-hidden border-b-[3px] border-ink">
+        <div className="absolute inset-0 p-4 opacity-40">
+          <div className="h-full w-full border-[2px] border-ink/20" />
         </div>
-
-        <div className="flex flex-col items-end gap-2">
-          <button
-            onClick={() => onOpen?.(board.id)}
-            className="btn-brutal border-[2px] border-ink bg-ink px-3 py-1 text-sm font-bold text-paper"
-            aria-label={`Open ${board.title}`}
-          >
-            Open
-          </button>
-
-          <button
-            onClick={() => onDelete(board.id)}
-            className="btn-brutal border-[2px] border-ink bg-acid px-3 py-1 text-sm font-bold"
-            aria-label={`Delete ${board.title}`}
-          >
-            Delete
-          </button>
+        <div className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 gap-1">
+          <div className="h-4 w-4 rounded-full border-2 border-ink bg-acid animate-pulse" />
+          <div className="h-4 w-4 rounded-full bg-ink/20" />
         </div>
       </div>
-    </article>
+
+      <div className="bg-white p-5">
+        <div className="mb-4 flex items-start justify-between gap-2">
+          <h3 className="font-black uppercase text-lg leading-tight tracking-tight">{board.title}</h3>
+          <div className="flex gap-2">
+            <button
+              aria-label="Rename"
+              className="grid h-8 w-8 place-items-center border-2 border-transparent transition-all hover:border-ink hover:bg-acid"
+            >
+              <Icon icon="ph:pencil-bold" />
+            </button>
+            <button
+              aria-label="Delete"
+              onClick={() => onDelete(board.id)}
+              className="grid h-8 w-8 place-items-center border-2 border-transparent transition-all hover:border-ink hover:bg-red-500 hover:text-white"
+            >
+              <Icon icon="ph:trash-bold" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-ink/40">
+            {board.updatedAt}
+          </span>
+          <Icon
+            icon="ph:arrow-right-bold"
+            className="-translate-x-4 text-xl text-acid opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100"
+          />
+        </div>
+      </div>
+    </div>
   );
 }

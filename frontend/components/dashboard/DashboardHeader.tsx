@@ -1,37 +1,51 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 import type { DashboardUser } from "./types";
 
 type Props = {
   user: DashboardUser;
-  boardCount: number;
-  loading: boolean;
 };
 
-export function DashboardHeader({ user, boardCount, loading }: Props) {
+export function DashboardHeader({ user }: Props) {
   return (
-    <div className="mb-6 border-[3px] border-ink bg-acid p-5 shadow-brutal">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.24em] text-ink/70">
-            Workspace overview
-          </p>
-          <h2 className="mt-2 text-2xl font-bold font-display">Welcome back, {user.name}</h2>
-          <p className="mt-2 max-w-[55ch] text-sm font-body text-ink/80">
-            {user.role} • {user.email}
-          </p>
+    <header className="sticky top-0 z-50 border-b-[3px] border-ink bg-paper">
+      <nav className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-6">
+        <div className="flex items-center gap-4">
+          <div className="grid h-10 w-10 place-items-center bg-ink text-xl font-black text-acid shadow-brutal-sm">
+            S
+          </div>
+          <div className="hidden text-lg font-black uppercase tracking-tight sm:block">
+            ScratchSlate <span className="text-ink/30">/</span> Dashboard
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="border-[3px] border-ink bg-paper px-3 py-2 text-sm font-bold font-display">
-            {loading ? "Loading boards..." : `${boardCount} boards`}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 border-r-[3px] border-ink/10 pr-6">
+            <div className="hidden text-right xs:block">
+              <div className="mb-1 text-[13px] font-black uppercase leading-none">{user.name} 👋</div>
+              <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50">
+                {user.role}
+              </div>
+            </div>
+            <div className="h-10 w-10 overflow-hidden border-[3px] border-ink bg-acid shadow-brutal-sm">
+              <Image
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
+                alt="Avatar"
+                width={40}
+                height={40}
+                unoptimized
+                className="h-full w-full object-cover"
+              />
+            </div>
           </div>
-          <div className="border-[3px] border-ink bg-paper px-3 py-2 text-sm font-bold font-display">
-            {user.workspace}
-          </div>
+
+          <button className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60 transition-colors hover:text-ink">
+            Logout
+          </button>
         </div>
-      </div>
-    </div>
+      </nav>
+    </header>
   );
 }
