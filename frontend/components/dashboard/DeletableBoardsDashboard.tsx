@@ -3,44 +3,54 @@
 import React, { useState } from "react";
 import { useBoards } from "@/hooks/useBoards";
 import { BoardList } from "./BoardList";
+import { DashboardHeader } from "./DashboardHeader";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 
+const user = {
+  name: "Mina",
+  role: "Product Designer",
+  email: "mina@scratchslate.dev",
+  workspace: "Studio 01",
+};
+
 export default function DeletableBoardsDashboard() {
-  const { boards, loading, error, refresh, deleteBoard } = useBoards();
+  const { boards, loading, error, deleteBoard } = useBoards();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedName, setSelectedName] = useState<string | undefined>(undefined);
 
   function onDeleteRequested(id: string) {
-    const b = boards.find((x) => x.id === id);
+    const board = boards.find((item) => item.id === id);
     setSelectedId(id);
-    setSelectedName(b?.title);
+    setSelectedName(board?.title);
     setConfirmOpen(true);
   }
 
-  async function onConfirmDelete() {
+  function onConfirmDelete() {
     if (!selectedId) return;
-    try {
-      await deleteBoard(selectedId);
-      setConfirmOpen(false);
-      setSelectedId(null);
-      setSelectedName(undefined);
-    } catch (err) {
-      // TODO: surface error to user
-      console.error(err);
-    }
+
+    deleteBoard(selectedId);
+    setConfirmOpen(false);
+    setSelectedId(null);
+    setSelectedName(undefined);
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-6 py-8">
-      <header className="mb-6 flex items-center justify-between">
-        <h2 className="text-2xl font-bold font-display">Your Boards</h2>
-        <div className="text-sm text-gray-600">{loading ? "Loading..." : `${boards.length} boards`}</div>
-      </header>
+    <section className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
+      <DashboardHeader user={user} boardCount={boards.length} loading={loading} />
 
-      {error && <div className="mb-4 text-red-600">Failed to load boards</div>}
+      {error && <div className="mb-4 border-[3px] border-ink bg-paper p-3 text-red-600">Failed to load boards</div>}
 
-      <BoardList boards={boards} onDeleteRequested={onDeleteRequested} />
+      <div className="rounded-sm border-[3px] border-ink bg-paper p-4 shadow-brutal">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold font-display">Board library</h3>
+            <p className="text-sm font-body text-ink/70">Delete a board to remove it from the workspace.</p>
+          </div>
+        </div>
+
+        <BoardList boards={boards} onDeleteRequested={onDeleteRequested} />
+      </div>
 
       <DeleteConfirmModal
         open={confirmOpen}

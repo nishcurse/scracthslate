@@ -2,42 +2,64 @@
 
 import { useEffect, useState } from "react";
 import type { Board } from "@/components/dashboard/types";
-import { api } from "@/lib/api";
+
+const seedBoards: Board[] = [
+  {
+    id: "board-1",
+    title: "Sprint planning",
+    description: "Capture goals, decisions, and next steps before the week begins.",
+    createdAt: "2h ago",
+    status: "review",
+    members: 4,
+  },
+  {
+    id: "board-2",
+    title: "Design critique",
+    description: "Collect feedback and lock the next visual direction for the dashboard.",
+    createdAt: "1d ago",
+    status: "draft",
+    members: 3,
+  },
+  {
+    id: "board-3",
+    title: "Product launch",
+    description: "Track rollout notes, owner hand-offs, and customer-facing updates.",
+    createdAt: "3d ago",
+    status: "published",
+    members: 7,
+  },
+];
 
 export function useBoards() {
   const [boards, setBoards] = useState<Board[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  async function fetchBoards() {
+  function refresh() {
     setLoading(true);
     setError(null);
-    try {
-      const resp = await api.get<Board[]>('/boards');
-      setBoards(resp.data || []);
-    } catch (err: any) {
-      setError(err);
-    } finally {
+
+    window.setTimeout(() => {
+      setBoards(seedBoards);
       setLoading(false);
-    }
+    }, 350);
   }
 
-  async function deleteBoard(id: string) {
-    // optimistic update
-    const prev = boards;
-    setBoards((s) => s.filter((b) => b.id !== id));
-    try {
-      await api.delete(`/boards/${id}`);
-    } catch (err) {
-      // rollback
-      setBoards(prev);
-      throw err;
-    }
+  function deleteBoard(id: string) {
+    setBoards((current) => current.filter((board) => board.id !== id));
   }
 
   useEffect(() => {
-    fetchBoards();
+    const timer = window.setTimeout(() => {
+      setBoards(seedBoards);
+      setLoading(false);
+      setError(null);
+    }, 350);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
   }, []);
 
-  return { boards, loading, error, refresh: fetchBoards, deleteBoard } as const;
+  return { boards, loading, error, refresh, deleteBoard } as const;
 }
