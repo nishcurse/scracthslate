@@ -1,43 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Board } from "@/components/dashboard/types";
-import { api } from "@/lib/api";
+
+const seedBoards: Board[] = [
+  {
+    id: "board-01",
+    title: "System Architecture v2",
+    updatedAt: "Updated 2h ago",
+  },
+  {
+    id: "board-02",
+    title: "Brainstorming Session",
+    updatedAt: "Updated Yesterday",
+  },
+  {
+    id: "board-03",
+    title: "Marketing Flow",
+    updatedAt: "Updated 4d ago",
+  },
+];
 
 export function useBoards() {
-  const [boards, setBoards] = useState<Board[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const [boards, setBoards] = useState<Board[]>(seedBoards);
 
-  async function fetchBoards() {
-    setLoading(true);
-    setError(null);
-    try {
-      const resp = await api.get<Board[]>('/boards');
-      setBoards(resp.data || []);
-    } catch (err: any) {
-      setError(err);
-    } finally {
-      setLoading(false);
-    }
+  function deleteBoard(id: string) {
+    setBoards((current) => current.filter((board) => board.id !== id));
   }
 
-  async function deleteBoard(id: string) {
-    // optimistic update
-    const prev = boards;
-    setBoards((s) => s.filter((b) => b.id !== id));
-    try {
-      await api.delete(`/boards/${id}`);
-    } catch (err) {
-      // rollback
-      setBoards(prev);
-      throw err;
-    }
+  function createBoard(title: string) {
+    const id = `board-${Date.now()}`;
+    const nowLabel = "Updated just now";
+    const newBoard: Board = { id, title, updatedAt: nowLabel };
+    setBoards((current) => [newBoard, ...current]);
+    return newBoard;
   }
 
-  useEffect(() => {
-    fetchBoards();
-  }, []);
-
-  return { boards, loading, error, refresh: fetchBoards, deleteBoard } as const;
+  return { boards, deleteBoard, createBoard } as const;
 }

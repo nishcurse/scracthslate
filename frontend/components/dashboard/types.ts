@@ -3,4 +3,14 @@ export interface Board {
   title: string;
   description?: string;
   createdAt?: string;
+  updatedAt?: string;
+  status?: "draft" | "review" | "published";
+  members?: number;
+}
+
+export interface DashboardUser {
+  name: string;
+  role: string;
+  email: string;
+  workspace: string;
 }

@@ -2,7 +2,7 @@ import DeletableBoardsDashboard from "@/components/dashboard/DeletableBoardsDash
 
 export default function DashboardPage() {
   return (
-    <main>
+    <main className="min-h-screen bg-paper">
       <DeletableBoardsDashboard />
     </main>
   );
