@@ -3,7 +3,7 @@ export interface Board {
   title: string;
   description?: string;
   createdAt?: string;
-  updatedAt?: string;
+  updated_at?: string;
   status?: "draft" | "review" | "published";
   members?: number;
 }

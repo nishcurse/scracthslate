@@ -2,10 +2,10 @@
 
 import React from "react";
 import Image from "next/image";
-import type { DashboardUser } from "./types";
+import {User} from "@/types/user"
 
 type Props = {
-  user: DashboardUser;
+  user: User;
 };
 
 export function DashboardHeader({ user }: Props) {
@@ -26,7 +26,7 @@ export function DashboardHeader({ user }: Props) {
             <div className="hidden text-right xs:block">
               <div className="mb-1 text-[13px] font-black uppercase leading-none">{user.name} 👋</div>
               <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50">
-                {user.role}
+                Pro User
               </div>
             </div>
             <div className="h-10 w-10 overflow-hidden border-[3px] border-ink bg-acid shadow-brutal-sm">

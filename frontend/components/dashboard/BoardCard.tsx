@@ -3,19 +3,25 @@
 import React from "react";
 import { Icon } from "@iconify/react";
 import type { Board } from "./types";
+import { useRouter } from "next/navigation"
 
 type Props = {
   board: Board;
   onDelete: (id: string) => void;
   isRemoving?: boolean;
+  onRename: (board : Board) => void;
 };
 
-export function BoardCard({ board, onDelete, isRemoving = false }: Props) {
+export function BoardCard({ board, onDelete, isRemoving = false , onRename }: Props) {
+  const router = useRouter();
   return (
     <div
-      className={`group block border-[3px] border-ink bg-white shadow-brutal btn-brutal transition-all duration-200 ${
+
+      className={`group block border-[3px] border-ink bg-white shadow-brutal btn-brutal 
+        transition-all duration-200 ${
         isRemoving ? "scale-[0.95] opacity-0" : "opacity-100"
       }`}
+      onClick={() => router.push(`/board/${board.id}`)}
     >
       <div className="grid-bg relative aspect-[16/10] overflow-hidden border-b-[3px] border-ink">
         <div className="absolute inset-0 p-4 opacity-40">
@@ -34,12 +40,19 @@ export function BoardCard({ board, onDelete, isRemoving = false }: Props) {
             <button
               aria-label="Rename"
               className="grid h-8 w-8 place-items-center border-2 border-transparent transition-all hover:border-ink hover:bg-acid"
+              onClick={(e)=>{
+                e.stopPropagation(); 
+                onRename(board);
+              }}
             >
               <Icon icon="ph:pencil-bold" />
             </button>
             <button
               aria-label="Delete"
-              onClick={() => onDelete(board.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(board.id);
+              }}
               className="grid h-8 w-8 place-items-center border-2 border-transparent transition-all hover:border-ink hover:bg-red-500 hover:text-white"
             >
               <Icon icon="ph:trash-bold" />
@@ -49,7 +62,7 @@ export function BoardCard({ board, onDelete, isRemoving = false }: Props) {
 
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-ink/40">
-            {board.updatedAt}
+            {board.updated_at}
           </span>
           <Icon
             icon="ph:arrow-right-bold"

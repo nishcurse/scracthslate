@@ -2,6 +2,8 @@
 
 import Toolbar from "./Toolbar";
 import WhiteboardCanvas from "./WhiteboardCanvas";
+import BoardHeader from "./BoardHeader";
+import CanvasControls from "./CanvasControls";
 
 import { useBoardSocket } from "@/hooks/useBoardSockets";
 
@@ -13,10 +15,14 @@ export default function Whiteboard({ boardId }: Props) {
   const { send } = useBoardSocket(boardId);
 
   return (
-    <main className="h-screen w-screen overflow-hidden bg-neutral-100">
-      <Toolbar />
+    <main className="relative h-screen w-screen overflow-hidden bg-paper">
+      <BoardHeader boardTitle={boardId} />
 
       <WhiteboardCanvas send={send} />
+
+      <Toolbar />
+
+      <CanvasControls />
     </main>
   );
 }

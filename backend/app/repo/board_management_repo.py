@@ -39,9 +39,12 @@ class BoardManagementRepo:
     @staticmethod
     async def list_boards(
         session : AsyncSession, 
+        owner_id : str,
     )->list[Board] : 
         result = await session.execute(
-            select(Board).order_by(Board.updated_at.desc())
+            select(Board)
+            .where(Board.owner_id == owner_id)
+            .order_by(Board.updated_at.desc())
         )
         return list(
             result.scalars()
@@ -52,11 +55,16 @@ class BoardManagementRepo:
         session: AsyncSession, 
         board_id : str,
         title : str,
+        owner_id : str,
     ) -> Board | None :
-        board = await session.get(
-            Board,
-            board_id
+        result = await session.execute(
+            select(Board).where(
+                Board.id == board_id, 
+                Board.owner_id == owner_id
+            )
         )
+        board = result.scalar_one_or_none()
+
         if board is None: 
             return None
         board.title = title
@@ -69,12 +77,16 @@ class BoardManagementRepo:
     async def delete_board(
         session : AsyncSession, 
         board_id : str,
+        owner_id : str,
     ) -> bool: 
-        board = await session.get(
-            Board, 
-            board_id,
+        result = await session.execute(
+            select(Board).where(
+                Board.id == board_id, 
+                Board.owner_id == owner_id,
+            )
         )
-        if Board is None: 
+        board = result.scalar_one_or_none()
+        if board is None: 
             return False
 
         await session.delete(board)

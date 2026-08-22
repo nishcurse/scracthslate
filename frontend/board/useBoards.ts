@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import { boardClient } from "@/board/board-client";
+import { boardClient } from "./board-client";
 import { Board } from "@/types/boardTypes";
 
 export function useBoards() {
@@ -10,11 +10,10 @@ export function useBoards() {
     const [loading, setLoading] = useState(true);
 
     const fetchBoards = useCallback(async () => {
+        setLoading(true);
+
         try {
-            setLoading(true);
-
             const data = await boardClient.getBoards();
-
             setBoards(data);
         } finally {
             setLoading(false);
@@ -36,11 +35,31 @@ export function useBoards() {
         return board;
     }
 
+    async function renameBoard(
+        id: string,
+        title: string,
+    ) {
+        const updatedBoard =
+            await boardClient.renameBoard(id, title);
+
+        setBoards((current) =>
+            current.map((board) =>
+                board.id === id
+                    ? updatedBoard
+                    : board,
+            ),
+        );
+
+        return updatedBoard;
+    }
+
     async function deleteBoard(id: string) {
         await boardClient.deleteBoard(id);
 
         setBoards((current) =>
-            current.filter((board) => board.id !== id)
+            current.filter(
+                (board) => board.id !== id,
+            ),
         );
     }
 
@@ -49,6 +68,7 @@ export function useBoards() {
         loading,
         fetchBoards,
         createBoard,
+        renameBoard,
         deleteBoard,
     };
 }

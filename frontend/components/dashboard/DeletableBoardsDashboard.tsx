@@ -2,24 +2,25 @@
 
 import React, { useMemo, useState } from "react";
 import { Icon } from "@iconify/react";
-import { useBoards } from "@/hooks/useBoards";
+import { useBoards } from "@/board/useBoards";
 import { BoardList } from "./BoardList";
 import { DashboardHeader } from "./DashboardHeader";
 import { NewBoardModal } from "./NewBoardModal";
-import type { DashboardUser } from "./types";
+import {useAuthStore} from "@/stores/auth-store"
+import {useRouter} from "next/navigation"
+import {RenameBoardModal} from "./RenameBoardModel"
+import { DeleteConfirmModal } from "./DeleteConfirmModal" 
+import type {Board} from "./types"
 
-const user: DashboardUser = {
-  name: "Utkarsh",
-  role: "Pro Member",
-  email: "utkarsh@scratchslate.dev",
-  workspace: "Studio 01",
-};
 
 export default function DeletableBoardsDashboard() {
-  const { boards, deleteBoard, createBoard } = useBoards();
+  const { boards, deleteBoard, createBoard , loading , renameBoard } = useBoards();
   const [searchValue, setSearchValue] = useState("");
   const [removingIds, setRemovingIds] = useState<string[]>([]);
   const [newModalOpen, setNewModalOpen] = useState(false);
+  const router = useRouter();
+  const [boardToRename, setBoardToRename] = useState<Board | null>(null);
+  const [boardToDelete, setBoardToDelete] = useState<Board | null>(null); 
 
   const filteredBoards = useMemo(() => {
     const query = searchValue.trim().toLowerCase();
@@ -28,13 +29,38 @@ export default function DeletableBoardsDashboard() {
     return boards.filter((board) => board.title.toLowerCase().includes(query));
   }, [boards, searchValue]);
 
+  function onRenameRequested(board: Board) {
+    setBoardToRename(board);
+  }
+
   function onDeleteRequested(id: string) {
+    const board = boards.find((board) => board.id === id);
+
+    if (!board) return;
+
+    setBoardToDelete(board);
+  }
+  const {user} = useAuthStore();
+  if(user === null) return null; 
+  
+  async function handleDeleteConfirmed() {
+    if (!boardToDelete) return;
+
+    const id = boardToDelete.id;
+
+    setBoardToDelete(null);
     setRemovingIds((current) => [...current, id]);
 
-    window.setTimeout(() => {
-      deleteBoard(id);
-      setRemovingIds((current) => current.filter((boardId) => boardId !== id));
-    }, 200);
+    try {
+      await deleteBoard(id);
+    } finally {
+      setRemovingIds((current) =>
+        current.filter((boardId) => boardId !== id)
+      );
+    }
+  }
+  function StartNewModal(){
+    setNewModalOpen(true);
   }
 
   return (
@@ -66,7 +92,7 @@ export default function DeletableBoardsDashboard() {
           </div>
 
           <div className="shrink-0">
-            <button onClick={() => setNewModalOpen(true)} className="btn-brutal flex items-center gap-3 border-[3px] border-ink bg-acid px-8 py-4 font-black uppercase tracking-wide text-base text-ink shadow-brutal">
+            <button onClick={StartNewModal} className="btn-brutal flex items-center gap-3 border-[3px] border-ink bg-acid px-8 py-4 font-black uppercase tracking-wide text-base text-ink shadow-brutal">
               <Icon icon="ph:plus-bold" className="text-xl" />
               New Board
             </button>
@@ -75,10 +101,10 @@ export default function DeletableBoardsDashboard() {
 
         <section id="boards-container" className="flex-1">
           {filteredBoards.length > 0 ? (
-            <BoardList boards={filteredBoards} onDeleteRequested={onDeleteRequested} removingIds={removingIds} />
+            <BoardList boards={filteredBoards} onDeleteRequested={onDeleteRequested} removingIds={removingIds} loading={loading} onRenameRequested={onRenameRequested} newModal={StartNewModal}/>
           ) : (
             <div className="flex h-full flex-col">
-              <BoardList boards={[]} onDeleteRequested={onDeleteRequested} removingIds={removingIds} />
+                <BoardList boards={[]} onDeleteRequested={onDeleteRequested} removingIds={removingIds} loading={loading} onRenameRequested={onRenameRequested} newModal={StartNewModal} />
             </div>
           )}
         </section>
@@ -100,11 +126,36 @@ export default function DeletableBoardsDashboard() {
 
       <NewBoardModal
         open={newModalOpen}
-        onCreate={(title) => {
-          createBoard(title);
+        onCreate={async (title) => {
+          const board = await createBoard(title);
+
           setNewModalOpen(false);
+
+          router.push(`/board/${board.id}`);
         }}
         onClose={() => setNewModalOpen(false)}
+      />
+      <RenameBoardModal
+        key={boardToRename?.id}
+        open={boardToRename !== null}
+        currentTitle={boardToRename?.title ?? ""}
+        onRename={async (title) => {
+          if (!boardToRename) return;
+
+          await renameBoard(
+            boardToRename.id,
+            title,
+          );
+
+          setBoardToRename(null);
+        }}
+        onClose={() => setBoardToRename(null)}
+      />
+      <DeleteConfirmModal
+        open={boardToDelete !== null}
+        targetName={boardToDelete?.title}
+        onConfirm={handleDeleteConfirmed}
+        onCancel={() => setBoardToDelete(null)}
       />
     </div>
   );

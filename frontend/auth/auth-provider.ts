@@ -32,6 +32,7 @@ export function AuthProvider({
             try{
                 const user = await authClient.getCurrentUser();
                 setUser(user);
+                console.log("user is logged in!" , user);
             }catch{
                 removeAccessToken(); 
                 clear();
