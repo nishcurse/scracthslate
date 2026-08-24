@@ -19,9 +19,29 @@ import { BoardObject } from "@/types/board";
 
 type Props = {
     send: (message: serverEvent) => void;
+    scale: number;
+
+    position: {
+        x: number;
+        y: number;
+    };
+
+    setScale: React.Dispatch<React.SetStateAction<number>>;
+
+    setPosition: React.Dispatch<
+        React.SetStateAction<{
+            x: number;
+            y: number;
+        }>
+    >;
 };
 
-export default function WhiteboardCanvas({ send }: Props) {
+export default function WhiteboardCanvas({ send,
+    scale,
+    position,
+    setScale,
+    setPosition,
+} : Props) {
     const stageRef = useRef<Konva.Stage | null>(null);
     const { width, height } = useWindowSize();
 
@@ -29,11 +49,6 @@ export default function WhiteboardCanvas({ send }: Props) {
     const objects = useBoardStore((state) => state.objects);
     const activetool = useBoardStore((state) => state.activetool);
 
-    const [scale , setScale] = useState(1); 
-    const [position , setPosition] = useState({
-        x: 0, 
-        y: 0   
-    });
     const [spacePressed , setSpacePressed] = useState(false);
 
     const updateObject = useBoardStore((state) => state.updateObject);

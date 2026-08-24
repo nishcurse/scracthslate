@@ -18,3 +18,30 @@ class BoardResponse(BaseModel):
 
 class RenameBoardRequest(BaseModel):
     title: str
+
+
+class AddBoardMemberRequest(BaseModel):
+    email: str
+    role: str = "editor"
+
+class BoardMemberResponse(BaseModel):
+    board_id: str
+    user_id: str
+    role: str
+
+    model_config = {
+        "from_attributes" : True,
+    }
+
+class BoardMemberDetailResponse(BaseModel):
+    board_id: str
+    user_id: str
+    role: str
+
+    name: str
+    email: str
+    picture: str | None
+
+    model_config = {
+        "from_attributes": True,
+}

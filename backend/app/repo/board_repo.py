@@ -70,4 +70,16 @@ class BoardRepo:
             )
         )
         return list(result.scalars())
+
+    @staticmethod
+    async def get_board(
+        session : AsyncSession, 
+        board_id : str,
+    ) -> Board | None :
+        result = await session.execute(
+            select(Board).where(
+                Board.id == board_id
+            )
+        )
+        return result.scalar_one_or_none()
         

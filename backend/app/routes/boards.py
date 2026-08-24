@@ -1,13 +1,18 @@
 from fastapi import APIRouter,HTTPException , Depends
 from app.services.board_management_services import boardManagementServices 
+from app.services.boardservices import BoardService
 
 # types importssss
 from app.schemas.boards import CreateBoardRequest,BoardResponse,RenameBoardRequest
+
+
+from app.schemas.boards import AddBoardMemberRequest, BoardMemberResponse, BoardMemberDetailResponse
 from app.db.models import User
 
 from app.auth.dependencies import get_current_user
 
 service = boardManagementServices()
+boardService = BoardService()
 
 router = APIRouter(
     prefix="/boards", 
@@ -60,6 +65,64 @@ async def delete_board(board_id : str , current_user : User = Depends(get_curren
         "message": "board delelted",
     }
 
+@router.post("/{board_id}/members", response_model=BoardMemberResponse)
+async def add_board_member(
+    board_id : str, 
+    req: AddBoardMemberRequest, 
+    current_user : User = Depends(get_current_user),
+): 
+    try : 
+        member = await boardService.add_member(
+            board_id=board_id, 
+            owner_id=current_user.id, 
+            email=req.email, 
+            role = req.role,
+        )
+
+    except PermissionError as exc: 
+        raise HTTPException(
+            status_code=403,
+            detail=str(exc)
+        )
+
+    except ValueError as exc: 
+        raise HTTPException(
+            status_code = 404, 
+            detail=str(exc)
+        )
+
+    if member is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Board not found",
+        )
+
+    return member
+
+@router.get(
+    "/{board_id}/members", 
+    response_model=list[BoardMemberDetailResponse],
+)
+async def get_board_member(
+    board_id : str, 
+    current_user : User = Depends(get_current_user),
+): 
+    try: 
+        members = await boardService.get_members(
+            board_id=board_id, 
+            user_id=current_user.id,
+        )
+    except PermissionError as exc: 
+        raise HTTPException(
+            status_code=403, 
+            detail=str(exc),
+        )
+    if members is None: 
+        raise HTTPException(
+            status_code = 404, 
+            detail="board not found",
+        )
+    return members
 
 
 

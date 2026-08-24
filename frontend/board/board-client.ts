@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 
-import { Board } from "@/types/boardTypes";
+import { Board , BoardMember } from "@/types/boardTypes";
 
 class BoardClient {
     async getBoards(): Promise<Board[]> {
@@ -40,6 +40,31 @@ class BoardClient {
         boardId: string,
     ): Promise<void> {
         await api.delete(`/boards/${boardId}`);
+    }
+    async getMembers(
+        boardId: string,
+    ): Promise<BoardMember[]> {
+        const response = await api.get(
+            `/boards/${boardId}/members`,
+        );
+
+        return response.data;
+    }
+
+    async addMember(
+        boardId: string,
+        email: string,
+        role: "editor" | "viewer" = "editor",
+    ): Promise<BoardMember> {
+        const response = await api.post(
+            `/boards/${boardId}/members`,
+            {
+                email,
+                role,
+            },
+        );
+
+        return response.data;
     }
 }
 

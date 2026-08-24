@@ -51,6 +51,12 @@ class Board(Base):
     )
     owner: Mapped["User"] = relationship()
 
+    members: Mapped[list["BoardMember"]] = relationship(
+    back_populates="board",
+    cascade="all, delete-orphan",
+    )
+
+
 
 
 class BoardObject(Base):
@@ -125,3 +131,32 @@ class User(Base):
         DateTime(timezone=True), 
         server_default=func.now(),
     )
+
+class BoardMember(Base):
+    __tablename__ = "board_members"
+
+    board_id: Mapped[str] = mapped_column(
+        ForeignKey("boards.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    user_id: Mapped[str] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
+
+    role: Mapped[str] = mapped_column(
+        String,
+        default="editor",
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
+    board: Mapped["Board"] = relationship(
+        back_populates="members",
+    )
+
+    user: Mapped["User"] = relationship()

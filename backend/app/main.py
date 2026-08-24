@@ -14,6 +14,8 @@ from app.routes.boards import router as board_router
 from app.routes.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.auth.utils import get_user_from_token
+
 boardservice = BoardService()
 
 
@@ -37,7 +39,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-)
+)   
 app.include_router(auth_router)
 app.include_router(board_router)
 
@@ -50,10 +52,25 @@ async def board_websocket(
     websocket: WebSocket, 
     board_id : str, 
 ):
-    await boardservice.join_board(
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=1008)
+        return
+
+    user = await get_user_from_token(token)
+    if user is None: 
+        await websocket.close(code=1008)
+        return
+
+    
+    joined = await boardservice.join_board(
         board_id=board_id, 
         websocket = websocket,
+        user=user,
     )
+
+    if not joined: 
+        return
     
     try: 
         while True: 

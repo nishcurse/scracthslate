@@ -1,102 +1,177 @@
 "use client";
 
+import { useState } from "react";
+import Image from "next/image";
 import { Icon } from "@iconify/react";
 
+import { ShareBoardModal } from "./ShareBoardModal";
+import { useBoardMembers } from "@/hooks/useBoardMembers";
+import { User } from "@/types/user";
+
 type Props = {
-    boardTitle?: string;
+    user: User;
+    boardTitle: string;
+    boardId: string;
 };
 
-export default function BoardHeader({
-    boardTitle = "Product Roadmap",
+export function BoardHeader({
+    user,
+    boardTitle,
+    boardId,
 }: Props) {
+    const [shareOpen, setShareOpen] = useState(false);
+
+    const {
+        members,
+        addMember,
+    } = useBoardMembers(boardId);
+
     return (
-        <header className="absolute inset-x-0 top-0 z-50 h-[68px] border-b-[3px] border-ink bg-paper">
-            <div className="flex h-full items-center justify-between px-6">
-                {/* Left */}
-                <div className="flex items-center gap-4">
-                    {/* Logo */}
-                    <div className="grid h-10 w-10 shrink-0 place-items-center bg-ink text-xl font-black text-acid shadow-brutal-sm">
-                        S
+        <>
+            <header className="h-[68px] shrink-0 border-b-[3px] border-ink bg-paper px-6">
+                <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between">
+
+                    {/* LEFT — BRAND + BOARD */}
+                    <div className="flex items-center gap-4">
+
+                        {/* Logo */}
+                        <div className="flex h-9 w-9 items-center justify-center border-[3px] border-ink bg-ink">
+                            <span className="font-black text-lg text-acid">
+                                S
+                            </span>
+                        </div>
+
+                        {/* Board identity */}
+                        <div className="flex items-center gap-2">
+                            <span className="font-black text-lg uppercase tracking-tight">
+                                SCRATCHSLATE
+                            </span>
+
+                            <span className="font-bold text-ink/30">
+                                /
+                            </span>
+
+                            <button
+                                type="button"
+                                className="group flex cursor-pointer items-center gap-2"
+                            >
+                                <span className="font-black text-lg uppercase tracking-tight">
+                                    {boardTitle}
+                                </span>
+
+                                <Icon
+                                    icon="ph:pencil-simple-bold"
+                                    className="text-ink/40 transition-colors group-hover:text-ink"
+                                />
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Board identity */}
-                    <div className="flex items-center gap-3">
-                        <span className="font-black uppercase tracking-tight">
-                            ScratchSlate
-                        </span>
+                    {/* RIGHT */}
+                    <div className="flex items-center gap-6">
 
-                        <span className="font-mono text-xs font-bold text-ink/30">
-                            /
-                        </span>
+                        {/* Collaborators + Live */}
+                        <div className="flex items-center gap-4">
 
-                        <span className="font-mono text-[11px] font-bold uppercase tracking-[0.15em]">
-                            {boardTitle}
-                        </span>
+                            {/* Collaborator avatars */}
+                            <div className="flex items-center">
 
-                        <button
-                            type="button"
-                            aria-label="Rename board"
-                            className="grid h-7 w-7 place-items-center border-2 border-transparent transition-colors hover:border-ink hover:bg-acid"
-                        >
-                            <Icon
-                                icon="ph:pencil-simple-bold"
-                                className="text-sm"
-                            />
-                        </button>
-                    </div>
-                </div>
+                                {/* Current user */}
+                                <div className="relative z-20 -mr-2 h-8 w-8 overflow-hidden border-[3px] border-ink bg-acid">
+                                    <Image
+                                        src={
+                                            user.picture
+                                        }
+                                        alt={user.name}
+                                        width={32}
+                                        height={32}
+                                        unoptimized
+                                        className="h-full w-full object-cover"
+                                    />
+                                </div>
 
-                {/* Right */}
-                <div className="flex items-center gap-6">
-                    {/* Live status */}
-                    <div className="hidden items-center gap-2 sm:flex">
-                        <span className="h-2 w-2 rounded-full bg-acid ring-2 ring-ink" />
+                                {/* First collaborator */}
+                                {members.slice(0, 1).map((member) => (
+                                    <div
+                                        key={member.user_id}
+                                        className="relative z-10 -mr-2 h-8 w-8 overflow-hidden border-[3px] border-ink bg-paper"
+                                        title={member.name}
+                                    >
+                                        {member.picture ? (
+                                            <Image
+                                                src={member.picture}
+                                                alt={member.name}
+                                                width={32}
+                                                height={32}
+                                                unoptimized
+                                                className="h-full w-full object-cover"
+                                            />
+                                        ) : (
+                                            <div className="flex h-full w-full items-center justify-center font-mono text-[10px] font-bold">
+                                                {member.name
+                                                    .charAt(0)
+                                                    .toUpperCase()}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
 
-                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em]">
-                            Live
-                        </span>
-                    </div>
-
-                    {/* Collaborators */}
-                    <div className="hidden items-center sm:flex">
-                        <div className="flex -space-x-2">
-                            <div className="grid h-8 w-8 place-items-center border-[2px] border-ink bg-acid text-[10px] font-black">
-                                U
+                                {/* Remaining collaborators */}
+                                {members.length > 1 && (
+                                    <div className="relative z-0 h-8 w-8 flex items-center justify-center border-[3px] border-ink bg-ink font-mono text-[10px] font-bold text-acid">
+                                        +{members.length - 1}
+                                    </div>
+                                )}
                             </div>
 
-                            <div className="grid h-8 w-8 place-items-center border-[2px] border-ink bg-paper text-[10px] font-black">
-                                A
-                            </div>
+                            {/* Live */}
+                            <div className="flex items-center gap-1.5 font-mono text-xs font-bold">
+                                <span className="animate-pulse text-acid">
+                                    ●
+                                </span>
 
-                            <div className="grid h-8 w-8 place-items-center border-[2px] border-ink bg-paper text-[10px] font-black">
-                                R
+                                <span className="uppercase tracking-widest">
+                                    LIVE
+                                </span>
                             </div>
                         </div>
 
-                        <span className="ml-2 font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50">
-                            +3
-                        </span>
+                        {/* Share + Menu */}
+                        <div className="flex items-center gap-3">
+
+                            {/* Share */}
+                            <button
+                                type="button"
+                                onClick={() => setShareOpen(true)}
+                                className="border-[3px] border-ink bg-acid px-5 py-2.5 text-xs font-black uppercase tracking-widest text-ink shadow-brutal-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                            >
+                                SHARE
+                            </button>
+
+                            {/* Menu */}
+                            <button
+                                type="button"
+                                aria-label="Board menu"
+                                className="flex h-10 w-10 items-center justify-center border-[3px] border-ink transition-colors hover:bg-ink hover:text-acid"
+                            >
+                                <Icon
+                                    icon="ph:dots-three-outline-vertical-fill"
+                                    className="text-xl"
+                                />
+                            </button>
+                        </div>
                     </div>
-
-                    {/* Share */}
-                    <button
-                        type="button"
-                        className="btn-brutal flex h-10 items-center gap-2 border-[3px] border-ink bg-acid px-4 font-mono text-[10px] font-bold uppercase tracking-[0.15em] text-ink shadow-brutal-sm transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-                    >
-                        <Icon icon="ph:share-network-bold" className="text-base" />
-                        Share
-                    </button>
-
-                    {/* Board menu */}
-                    <button
-                        type="button"
-                        aria-label="Board options"
-                        className="grid h-10 w-10 place-items-center border-[3px] border-transparent transition-colors hover:border-ink hover:bg-acid"
-                    >
-                        <Icon icon="ph:dots-three-bold" className="text-xl" />
-                    </button>
                 </div>
-            </div>
-        </header>
+            </header>
+
+            {/* Share Modal */}
+            <ShareBoardModal
+                open={shareOpen}
+                onInvite={async (email, role) => {
+                    await addMember(email, role);
+                }}
+                onClose={() => setShareOpen(false)}
+            />
+        </>
     );
 }

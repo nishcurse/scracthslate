@@ -4,14 +4,19 @@ import {useEffect, useRef} from "react"
 
 import {useBoardStore} from "@/stores/board-store"
 import type {serverEvent} from "@/types/socket"
+import {getAccessToken} from "@/auth/token"
 
 
 
 export function useBoardSocket(boardId: string){
     const socketRef = useRef<WebSocket | null>(null); 
     useEffect(()=>{
+        const token = getAccessToken(); 
+        if(!token){
+            return;
+        }
         const socket = new WebSocket(
-            `ws://localhost:8000/ws/boards/${boardId}`
+            `ws://localhost:8000/ws/boards/${boardId}?token=${encodeURIComponent(token)}`
         ); 
         socketRef.current = socket; 
         
