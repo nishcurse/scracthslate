@@ -1,40 +1,64 @@
 from fastapi import WebSocket
+from app.db.models import User
+
 
 class ConnectionManager: 
     def __init__(self): 
-        self.rooms: dict[str, list[WebSocket]] = {}
-        self.boards: dict[str, dict[str, dict]] = {} #current state of board storage we can say for now 
-    #connection management: 
-    async def connect(self, board_id : str , websocket: WebSocket): 
+        self.rooms: dict[str, list[dict]] = {}
+        self.boards: dict[str, dict[str, dict]] = {} 
+    async def connect(self, board_id : str , websocket: WebSocket, user: User): 
         await websocket.accept()
 
         if board_id not in self.rooms: 
             self.rooms[board_id] = []
 
-        self.rooms[board_id].append(websocket)
+        self.rooms[board_id].append({
+            "websocket": websocket, 
+            "user" : user,
+            "cursor" : None,
+        })
 
-    def disconnect(self, board_id: str, websocket : WebSocket): 
+    def disconnect(self, board_id: str, websocket : WebSocket) -> User | None: 
         if board_id not in self.rooms: 
-            return 
+            return None
+        removed_user = None
+        remaining = []
+        for connection in self.rooms[board_id]:
+            if connection["websocket"] == websocket:  
+                removed_user = connection["user"]
+            else: 
+                remaining.append(connection)
 
-        if websocket in self.rooms[board_id]:
-            self.rooms[board_id].remove(websocket)
+        self.rooms[board_id] = remaining
 
         if not self.rooms[board_id]: 
-            del self.rooms[board_id] 
+            del self.rooms[board_id]
+        return removed_user
 
     async def broadcast(
             self, 
             board_id : str, 
             message : dict , 
-            sender : WebSocket
+            sender : WebSocket | None = None,
     ):
         if board_id not in self.rooms: 
             return 
 
         for connection in self.rooms[board_id]: 
-            if connection != sender: 
-                await connection.send_json(message)
+            websocket = connection["websocket"]
+            if websocket != sender: 
+                await websocket.send_json(message)
+
+    def get_live_users(
+        self, 
+        board_id : str,
+    ) -> list[User]:
+        if board_id not in self.rooms: 
+            return []
+        return [
+            connection["user"]
+            for connection in self.rooms[board_id]
+        ]
 
     #Board syncronization: 
     def get_board(self, board_id: str): 
@@ -96,6 +120,41 @@ class ConnectionManager:
             for obj in objects
         }
 
+    #helper funtions 
+    def user_helper(self, user: User) -> dict: 
+        return {
+            "id" : user.id, 
+            "name" : user.name, 
+            "email" : user.email,
+            "picture" : user.picture 
+        }
+    def get_user(self, board_id : str, websocket : WebSocket) -> User|None:
+        if board_id not in self.rooms: 
+            return None 
+        for connection in self.rooms[board_id]: 
+            if connection["websocket"] == websocket:
+                return connection["user"]
+
+        return None
+
+    #presence:cursor events
+    def update_cursor(
+        self, 
+        board_id : str, 
+        websocket: WebSocket, 
+        x: float , 
+        y: float, 
+    ):
+        if board_id not in self.rooms: 
+            return 
+
+        for connection in self.rooms[board_id]:
+            if connection["websocket"] == websocket: 
+                connection["cursor"] = {
+                    "x":x, 
+                    "y":y,
+                }
+                return
 
 
 manager =ConnectionManager()

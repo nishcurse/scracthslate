@@ -12,52 +12,77 @@ from app.db.models import User
 class BoardService:
 
     async def join_board(
-        self,
-        board_id: str,
-        websocket: WebSocket,
-        user : User
-    ):
-        async with SessionLocal() as session: 
-            board = await BoardRepo.get_board(
-                session=session, 
-                board_id = board_id,
-            )
-            if board is None: 
-                await websocket.close(code = 1008)
-                return False
-            if board.owner_id != user.id: 
-                has_access = await BoardMemberRepo.has_access(
-                    session=session, 
-                    board_id=board_id, 
-                    user_id=user.id
-                )
-                if not has_access: 
-                    await websocket.close(code = 1008)
-                    return False
-            
+    self,
+    board_id: str,
+    websocket: WebSocket,
+    user: User,
+    ) -> bool:
 
-        
+        async with SessionLocal() as session:
+            board = await BoardRepo.get_board(
+                session=session,
+                board_id=board_id,
+            )
+
+            if board is None:
+                return False
+
+            # Owner automatically has access.
+            if board.owner_id != user.id:
+                has_access = await BoardMemberRepo.has_access(
+                    session=session,
+                    board_id=board_id,
+                    user_id=user.id,
+                )
+
+                if not has_access:
+                    return False
+
+        # Load the board from PostgreSQL only when
+        # this board isn't currently active in memory.
         if not manager.has_board(board_id):
             async with SessionLocal() as session:
                 db_objects = await BoardRepo.get_board_object(
-                    session=session, 
+                    session=session,
                     board_id=board_id,
                 )
-            
+
             manager.sync_board(
-                board_id=board_id, 
-                objects=[obj.data for obj in db_objects], 
+                board_id=board_id,
+                objects=[obj.data for obj in db_objects],
             )
+        existing_users = manager.get_live_users(board_id=board_id)
 
+        await manager.connect(
+            board_id,
+            websocket,
+            user=user,
+        )
 
-        await manager.connect(board_id , websocket)
-            # send new user his snapshot so they can sync 
         await websocket.send_json({
-            "type": "board:snapshot", 
-            "objects" : manager.get_board(board_id),
+            "type": "board:snapshot",
+            "objects": manager.get_board(board_id),
         })
-        
+        await websocket.send_json({
+            "type" : "presence:snapshot", 
+            "user" : [
+                manager.user_helper(existing_user)
+                for existing_user in existing_users
+            ] + [
+                manager.user_helper(user)
+            ]
+        })
 
+        await manager.broadcast(
+            board_id=board_id, 
+            message = {
+                "type" : "presence:join", 
+                "user" : manager.user_helper(user), 
+            }, 
+            sender = websocket,
+        )
+
+        return True
     async def handle_message(
         self,
         board_id: str,
@@ -76,14 +101,18 @@ class BoardService:
                 )
         elif eventType == "object:update":
             manager.update_object(board_id, message["id"] , message["changes"])
+        elif eventType == "object:commit":
             object_id = message["id"]
-            updated = manager.get_object(board_id, object_id)
+            updated = manager.get_object(
+                board_id=board_id, 
+                object_id=object_id,
+            )
             if updated is not None: 
                 async with SessionLocal() as session: 
                     await BoardRepo.update_object(
                         session=session, 
                         object_id=object_id, 
-                        object_data = updated,
+                        object_data=updated
                     )
         elif eventType == "object:delete": 
             manager.delete_object(board_id, message["id"])
@@ -99,6 +128,31 @@ class BoardService:
                 message["id"], 
                 message["points"],
             )
+        elif eventType == "presence:cursor":
+            manager.update_cursor(
+                board_id, 
+                websocket, 
+                x=message["x"],
+                y=message["y"],
+            )   
+            user = manager.get_user(
+                board_id, 
+                websocket,
+            )
+            if user is None:
+                return 
+
+            await manager.broadcast(
+                board_id=board_id, 
+                message = {
+                    "type" : "presence:cursor",
+                    "user" : manager.user_helper(user), 
+                    "x" : message["x"], 
+                    "y" : message["y"],
+                }, 
+                sender = websocket
+            )
+            return 
             
         await manager.broadcast(
             board_id=board_id, 

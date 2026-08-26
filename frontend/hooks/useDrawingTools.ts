@@ -5,13 +5,12 @@ import type konva from "konva";
 import { useBoardStore } from "@/stores/board-store"
 import { serverEvent } from "@/types/socket"
 import { BoardObject } from "@/types/board"
-import BoardPage from "@/app/board/[boardId]/page";
 
 
 type props = {
     stageRef: React.RefObject<konva.Stage | null>;
     send: (message: serverEvent) => void;
-    spacePressed : boolean,
+    spacePressed: boolean,
 };
 
 export function useDrawingTools({
@@ -35,25 +34,28 @@ export function useDrawingTools({
     const flushPendingPoints = () => {
         const drawingId = drawingIdRef.current;
         const points = pendingPointsRef.current;
-        if (!drawingId || points == null || points?.length === 0) {
+
+        if (
+            !drawingId ||
+            points.length === 0
+        ) {
             return;
         }
-        const obj = useBoardStore.getState().objects[drawingId]; 
-        // right now we are sending whole object but in future i will create an event "stroke:compelete"
-        // to push the changes to db as whole
+
         send({
-            type : "object:update", 
-            id : drawingId,
-            changes : obj,
-        })
+            type: "stroke:append",
+            id: drawingId,
+            points: [...points],
+        });
+
         pendingPointsRef.current = [];
         lastSendTimeRef.current = performance.now();
     };
     const getPointerPosition = () => {
         const stage = stageRef.current;
-        if(!stage) return null; 
-        const pointer = stage.getPointerPosition(); 
-        if(!pointer) return null;
+        if (!stage) return null;
+        const pointer = stage.getPointerPosition();
+        if (!pointer) return null;
 
         const transform = stage.getAbsoluteTransform().copy().invert()
         return transform.point(pointer);
@@ -104,22 +106,40 @@ export function useDrawingTools({
     }
     const continueFreehand = (x: number, y: number) => {
         const drawingId = drawingIdRef.current;
+
         if (!drawingId) {
             return;
         }
-        const object = useBoardStore.getState().objects[drawingId];
+
+        const object =
+            useBoardStore.getState().objects[drawingId];
+
         if (!object || object.type !== "freehand") {
             return;
         }
 
-        const points = [x - object.x, y - object.y];
-        appendPoints(drawingId, points);
-        pendingPointsRef.current.push(...points);
+        const points = [
+            x - object.x,
+            y - object.y,
+        ];
+
+        appendPoints(
+            drawingId,
+            points,
+        );
+
+        pendingPointsRef.current.push(
+            ...points,
+        );
+
         const now = performance.now();
-        if (now - lastSendTimeRef.current >= 33) {
+
+        if (
+            now - lastSendTimeRef.current >= 33
+        ) {
             flushPendingPoints();
         }
-    }
+    };
     const resizeRectangle = (x: number, y: number) => {
         const shapeId = shapeIdRef.current;
         const shapeStart = shapeStartRef.current;
@@ -223,7 +243,7 @@ export function useDrawingTools({
         });
     };
     const handlePointerDown = () => {
-        if(spacePressed) return;
+        if (spacePressed) return;
 
         const stage = stageRef.current;
         if (!stage) {
@@ -284,20 +304,53 @@ export function useDrawingTools({
 
     };
     const handlePointerUp = () => {
+        const refId = shapeIdRef.current
         switch (activetool) {
-            case "pen":
-                flushPendingPoints()
+            case "pen": {
+                flushPendingPoints();
+                const drawingId = drawingIdRef.current;
+                if (drawingId) {
+                    send(
+                        {
+                            type: "object:commit",
+                            id: drawingId,
+                        }
+                    );
+                }
+
                 drawingIdRef.current = null;
                 break;
+            }
+
             case "rectangle":
+                if (refId) {
+                    send({
+                        type: "object:commit",
+                        id: refId,
+                    })
+                }
                 shapeIdRef.current = null;
                 shapeStartRef.current = null;
                 break;
+
             case "ellipse":
+                if (refId) {
+                    send({
+                        type: "object:commit",
+                        id: refId,
+                    })
+                }
                 shapeIdRef.current = null;
                 shapeStartRef.current = null;
                 break;
+
             case "line":
+                if (refId) {
+                    send({
+                        type: "object:commit",
+                        id: refId,
+                    })
+                }
                 shapeIdRef.current = null;
                 break;
         }

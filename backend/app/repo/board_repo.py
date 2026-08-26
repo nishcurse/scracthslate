@@ -15,11 +15,9 @@ class BoardRepo:
             board_id,
         )
         if board is None: 
-            board = Board(
-                id=board_id, 
-                title="Untitled Board",
+            raise ValueError(
+                "board not found"
             )
-            session.add(board)
 
         board_object = BoardObject(
             id=object_data["id"], 
@@ -30,6 +28,7 @@ class BoardRepo:
         session.add(board_object)
         await session.commit()
         return board_object
+    
     @staticmethod
     async def update_object(
         session : AsyncSession, 

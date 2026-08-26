@@ -1,4 +1,5 @@
 from app.repo.board_management_repo import BoardManagementRepo
+from app.repo.board_member_repo import BoardMemberRepo
 from app.db.database import SessionLocal
 
 class boardManagementServices: 
@@ -49,3 +50,31 @@ class boardManagementServices:
                 board_id=board_id,
                 owner_id=owner_id,
             )
+
+    async def get_board(
+        self, 
+        board_id : str, 
+        user_id : str,
+    ): 
+        async with SessionLocal() as session: 
+            board = await BoardManagementRepo.get_board(
+                session=session,
+                board_id=board_id
+            )
+
+            if board is None: 
+                return None
+            #let's check access
+            if board.owner_id != user_id:
+                has_access = await BoardMemberRepo.has_access(
+                    session=session, 
+                    board_id=board_id, 
+                    user_id=user_id,
+                )
+
+                if not has_access: 
+                    raise PermissionError(
+                        "you do not have permission for this board"
+                    )
+
+            return board

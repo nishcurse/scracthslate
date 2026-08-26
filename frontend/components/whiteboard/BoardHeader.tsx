@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Icon } from "@iconify/react";
+import { useRouter } from "next/navigation";
 
 import { ShareBoardModal } from "./ShareBoardModal";
 import { useBoardMembers } from "@/hooks/useBoardMembers";
@@ -19,6 +20,8 @@ export function BoardHeader({
     boardTitle,
     boardId,
 }: Props) {
+    const router = useRouter();
+
     const [shareOpen, setShareOpen] = useState(false);
 
     const {
@@ -31,8 +34,21 @@ export function BoardHeader({
             <header className="h-[68px] shrink-0 border-b-[3px] border-ink bg-paper px-6">
                 <div className="mx-auto flex h-full max-w-[1440px] items-center justify-between">
 
-                    {/* LEFT — BRAND + BOARD */}
+                    {/* LEFT — BACK + BRAND + BOARD */}
                     <div className="flex items-center gap-4">
+
+                        {/* Back to Dashboard */}
+                        <button
+                            type="button"
+                            onClick={() => router.push("/dashboard")}
+                            aria-label="Back to dashboard"
+                            className="group flex h-9 w-9 items-center justify-center border-[3px] border-ink bg-paper transition-colors hover:bg-ink hover:text-acid"
+                        >
+                            <Icon
+                                icon="ph:arrow-left-bold"
+                                className="text-lg transition-transform group-hover:-translate-x-0.5"
+                            />
+                        </button>
 
                         {/* Logo */}
                         <div className="flex h-9 w-9 items-center justify-center border-[3px] border-ink bg-ink">
@@ -79,9 +95,7 @@ export function BoardHeader({
                                 {/* Current user */}
                                 <div className="relative z-20 -mr-2 h-8 w-8 overflow-hidden border-[3px] border-ink bg-acid">
                                     <Image
-                                        src={
-                                            user.picture
-                                        }
+                                        src={user.picture}
                                         alt={user.name}
                                         width={32}
                                         height={32}
@@ -118,7 +132,7 @@ export function BoardHeader({
 
                                 {/* Remaining collaborators */}
                                 {members.length > 1 && (
-                                    <div className="relative z-0 h-8 w-8 flex items-center justify-center border-[3px] border-ink bg-ink font-mono text-[10px] font-bold text-acid">
+                                    <div className="relative z-0 flex h-8 w-8 items-center justify-center border-[3px] border-ink bg-ink font-mono text-[10px] font-bold text-acid">
                                         +{members.length - 1}
                                     </div>
                                 )}

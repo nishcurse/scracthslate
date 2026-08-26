@@ -1,3 +1,4 @@
+"use client"
 import { HERO } from "@/constants/landing";
 
 import { GoogleSignInButton } from "@/components/auth/GoogleSigninButton";
@@ -5,8 +6,12 @@ import { GoogleSignInButton } from "@/components/auth/GoogleSigninButton";
 import { HeroActionButton } from "./HeroActionButton";
 import { HeroCard } from "./HeroCard";
 import { HeroFeature } from "./HeroFeature";
+import {DashboardBtn} from "../dashbaordbtn"; 
+import {useAuthStore} from "@/stores/auth-store";
+
 
 export function Hero() {
+    const user = useAuthStore((st) => st.user); 
     return (
         <section className="grid-bg border-b-[3px] border-ink py-14 sm:py-24">
             <div className="mx-auto max-w-310 px-5 sm:px-8">
@@ -40,10 +45,16 @@ export function Hero() {
 
                         {/* Actions */}
                         <div className="mt-10 flex flex-wrap gap-4">
-                            <GoogleSignInButton variant="hero" />
+                            {user ?
+                                <DashboardBtn href="/dashboard" >
+                                    Go to Dashbaord
+                                </DashboardBtn >
+                            :
+                                <GoogleSignInButton variant="hero" />
+                            }
 
                             <HeroActionButton
-                                href="https://github.com"
+                                href="https://github.com/nishcurse/scracthslate"
                                 icon="ph:github-logo-bold"
                                 variant="secondary"
                             >

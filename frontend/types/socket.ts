@@ -26,4 +26,9 @@ export type serverEvent =
     id : string; 
     points : number[];
 }
+    |
+{
+    type : "object:commit"; 
+    id : string;   
+}
 ; 

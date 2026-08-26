@@ -1,65 +1,98 @@
-"use client"; 
+"use client";
 
-import {useEffect, useRef} from "react"
+import { useEffect, useRef } from "react";
 
-import {useBoardStore} from "@/stores/board-store"
-import type {serverEvent} from "@/types/socket"
-import {getAccessToken} from "@/auth/token"
+import { useBoardStore } from "@/stores/board-store";
+import type { serverEvent } from "@/types/socket";
+import { getAccessToken } from "@/auth/token";
 
+export function useBoardSocket(boardId: string) {
+    const socketRef = useRef<WebSocket | null>(null);
 
+    useEffect(() => {
+        const token = getAccessToken();
 
-export function useBoardSocket(boardId: string){
-    const socketRef = useRef<WebSocket | null>(null); 
-    useEffect(()=>{
-        const token = getAccessToken(); 
-        if(!token){
+        if (!token) {
+            console.log("No access token");
             return;
         }
+
         const socket = new WebSocket(
             `ws://localhost:8000/ws/boards/${boardId}?token=${encodeURIComponent(token)}`
-        ); 
-        socketRef.current = socket; 
-        
-        socket.onmessage = (event) =>{
+        );
+
+        socketRef.current = socket;
+
+        socket.onopen = () => {
+            console.log("WebSocket OPEN:", boardId);
+        };
+
+        socket.onmessage = (event) => {
             const message: serverEvent = JSON.parse(event.data);
-            console.log("receieved" , message);
+
+
             const store = useBoardStore.getState();
-            switch(message.type){
+
+            switch (message.type) {
                 case "board:snapshot":
-                    store.setObject(message.objects); 
+                    store.setObject(message.objects);
                     break;
-                case "object:create": 
-                    store.addObject(message.object); 
+
+                case "object:create":
+                    store.addObject(message.object);
                     break;
-                case "object:update": 
-                    store.updateObject(message.id,message.changes);
+
+                case "object:update":
+                    store.updateObject(
+                        message.id,
+                        message.changes,
+                    );
                     break;
-                case "object:delete": 
-                    store.removeObject(message.id); 
+
+                case "object:delete":
+                    store.removeObject(message.id);
                     break;
-                case "stroke:append": 
-                    store.appendPoints(message.id, message.points)
-                    break;
-                default: 
+
+                case "stroke:append":
+                    store.appendPoints(
+                        message.id,
+                        message.points,
+                    );
                     break;
             }
-        }; 
-        return () => {
-            socket.close(); 
-            socketRef.current = null;
-        }
+        };
 
-    } ,[boardId]);
+        socket.onerror = (error) => {
+            console.error("WebSocket ERROR:", error);
+        };
+
+        socket.onclose = (event) => {
+            console.log("WebSocket CLOSED:", {
+                code: event.code,
+                reason: event.reason,
+                wasClean: event.wasClean,
+            });
+        };
+
+        return () => {
+            socket.close();
+            socketRef.current = null;
+        };
+    }, [boardId]);
 
     const send = (message: serverEvent) => {
-        const socket = socketRef.current; 
+        const socket = socketRef.current;
 
-        if(!socket || socket.readyState !== WebSocket.OPEN){
-            console.log("socket not open for sending");
-            return; 
+        if (!socket) {
+            return;
         }
+
+        if (socket.readyState !== WebSocket.OPEN) {
+            return;
+        }
+
         socket.send(JSON.stringify(message));
-    }; 
+    };
+
     return { send };
 }
-

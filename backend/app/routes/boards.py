@@ -124,6 +124,32 @@ async def get_board_member(
         )
     return members
 
+@router.get(
+    "/{board_id}", 
+    response_model=BoardResponse
+)
+async def get_board(
+    board_id : str, 
+    current_user : User = Depends(get_current_user),
+):
+    try:
+        board = await service.get_board(
+            board_id=board_id, 
+            user_id=current_user.id
+        )
+
+    except PermissionError as exec:
+        raise HTTPException(
+            status_code=403, 
+            detail = str(exec),
+        )
+
+    if board is None: 
+        raise HTTPException(
+            status_code=404, 
+            detail="board not found",
+        )
+    return board
 
 
 

@@ -47,38 +47,55 @@ app.include_router(board_router)
 def root():
     return {"message" : "Boom!"}
 
+
+
 @app.websocket("/ws/boards/{board_id}")
 async def board_websocket(
-    websocket: WebSocket, 
-    board_id : str, 
+    websocket: WebSocket,
+    board_id: str,
 ):
     token = websocket.query_params.get("token")
+
     if not token:
         await websocket.close(code=1008)
         return
 
     user = await get_user_from_token(token)
-    if user is None: 
+
+    if user is None:
         await websocket.close(code=1008)
         return
 
-    
     joined = await boardservice.join_board(
-        board_id=board_id, 
-        websocket = websocket,
+        board_id=board_id,
+        websocket=websocket,
         user=user,
     )
 
-    if not joined: 
+    if not joined:
+        await websocket.close(code=1008)
         return
-    
-    try: 
-        while True: 
+
+    try:
+        while True:
             message = await websocket.receive_json()
+
             await boardservice.handle_message(
-                board_id = board_id, 
-                websocket=websocket, 
+                board_id=board_id,
+                websocket=websocket,
                 message=message,
             )
-    except WebSocketDisconnect: 
-        manager.disconnect(board_id, websocket)
+
+    except WebSocketDisconnect:
+        user = manager.disconnect(
+            board_id,
+            websocket,
+        )
+        if user:
+            await manager.broadcast(
+                board_id = board_id, 
+                message = {
+                    "type" : "presence:leave", 
+                    "user" : manager.user_helper(user), 
+                }, 
+            )

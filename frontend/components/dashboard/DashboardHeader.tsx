@@ -24,14 +24,14 @@ export function DashboardHeader({ user }: Props) {
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3 border-r-[3px] border-ink/10 pr-6">
             <div className="hidden text-right xs:block">
-              <div className="mb-1 text-[13px] font-black uppercase leading-none">{user.name} 👋</div>
+              <div className="mb-1 text-[13px] font-black uppercase leading-none">{user.name}</div>
               <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-ink/50">
                 Pro User
               </div>
             </div>
             <div className="h-10 w-10 overflow-hidden border-[3px] border-ink bg-acid shadow-brutal-sm">
               <Image
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`}
+                src={`${user.picture}`}
                 alt="Avatar"
                 width={40}
                 height={40}

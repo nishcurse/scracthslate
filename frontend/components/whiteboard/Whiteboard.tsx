@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Toolbar from "./Toolbar";
 import WhiteboardCanvas from "./WhiteboardCanvas";
 import { BoardHeader } from "./BoardHeader";
@@ -8,7 +8,7 @@ import CanvasControls from "./CanvasControls";
 
 import { useBoardSocket } from "@/hooks/useBoardSockets";
 import { useAuthStore } from "@/stores/auth-store";
-import { useRouter } from "next/navigation";
+import {boardClient} from "@/board/board-client"
 
 type Props = {
   boardId: string;
@@ -16,7 +16,20 @@ type Props = {
 
 export default function Whiteboard({ boardId }: Props) {
   const { send } = useBoardSocket(boardId);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(1); 
+  const [boardTitle , setBoardTitle] = useState("Loading...");
+
+
+  useEffect(()=>{
+    boardClient.getBoard(boardId).then((board) => {
+      setBoardTitle(board.title)
+    }).catch((err)=>{
+      console.error(
+        "failed to fetch board!", 
+        err,
+      )
+    })
+  },[boardId])
 
   const [position, setPosition] = useState({
     x: 0,
@@ -59,7 +72,7 @@ export default function Whiteboard({ boardId }: Props) {
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-paper">
       <BoardHeader
-        boardTitle={boardId}
+        boardTitle={boardTitle}
         user={user}
         boardId = {boardId}
       />

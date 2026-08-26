@@ -4,7 +4,7 @@ import {getAccessToken} from "@/auth/token"
 export const api = axios.create({
     baseURL : process.env.NEXT_PUBLIC_API_URL,
     headers : {
-        "Content-Length" : "application/json",
+        "Content-Type" : "application/json",
     }
 })
 

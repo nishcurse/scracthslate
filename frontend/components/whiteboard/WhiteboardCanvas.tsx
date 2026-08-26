@@ -2,7 +2,7 @@
 
 import { useEffect, useRef , useState } from "react";
 import Konva from "konva";
-import { KonvaNodeComponent, Layer, Stage , Transformer} from "react-konva";
+import { KonvaNodeComponent, Layer, Stage , Transformer , Circle} from "react-konva";
 
 import FreehandObject from "./objects/freehand";
 import RectangleObject from "./objects/rectangle";
@@ -35,6 +35,67 @@ type Props = {
         }>
     >;
 };
+
+function DotGrid({
+    width,
+    height,
+    scale,
+    position,
+}: {
+    width: number;
+    height: number;
+    scale: number;
+    position: {
+        x: number;
+        y: number;
+    };
+}) {
+    const spacing = 24;
+
+    // Convert viewport bounds into world coordinates.
+    const worldLeft = -position.x / scale;
+    const worldTop = -position.y / scale;
+
+    const worldRight =
+        worldLeft + width / scale;
+
+    const worldBottom =
+        worldTop + height / scale;
+
+    // Start/end slightly outside the viewport
+    // so there are no visible gaps while moving.
+    const startX =
+        Math.floor(worldLeft / spacing) * spacing - spacing;
+
+    const endX =
+        Math.ceil(worldRight / spacing) * spacing + spacing;
+
+    const startY =
+        Math.floor(worldTop / spacing) * spacing - spacing;
+
+    const endY =
+        Math.ceil(worldBottom / spacing) * spacing + spacing;
+
+    const dots = [];
+
+    for (let x = startX; x <= endX; x += spacing) {
+        for (let y = startY; y <= endY; y += spacing) {
+            dots.push(
+                <Circle
+                    key={`${x}-${y}`}
+                    x={x}
+                    y={y}
+                    radius={1}
+                    fill="rgba(0, 0, 0, 0.20)"
+                    listening={false}
+                />
+            );
+        }
+    }
+
+    return <>{dots}</>;
+}
+
 
 export default function WhiteboardCanvas({ send,
     scale,
@@ -220,10 +281,11 @@ export default function WhiteboardCanvas({ send,
 
 
     return (
+        <div className="absolute inset-x-0 bottom-0 top-[68px] bg-[#F7F7F5]">
         <Stage
             ref={stageRef}
             width={width}
-            height={height}
+            height={height - 68}
             x={position.x}
             y={position.y}
             scaleX={scale}
@@ -257,6 +319,15 @@ export default function WhiteboardCanvas({ send,
                 });
             }}
         >
+                <Layer listening={false}>
+                    <DotGrid
+                        width={width}
+                        height={height - 68}
+                        scale={scale}
+                        position={position}
+                    />
+                </Layer>
+
             <Layer>
                 {Object.values(objects).map((object) => {
                     switch (object.type) {
@@ -324,5 +395,6 @@ export default function WhiteboardCanvas({ send,
                 />
             </Layer>
         </Stage>
+        </div>
     );
 }

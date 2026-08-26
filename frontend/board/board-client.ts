@@ -66,6 +66,11 @@ class BoardClient {
 
         return response.data;
     }
+
+    async getBoard(board_id : string): Promise<Board> {
+        const resp = await api.get(`/boards/${board_id}`); 
+        return resp.data;
+    }
 }
 
 export const boardClient = new BoardClient();
