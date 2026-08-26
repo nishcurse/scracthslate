@@ -141,12 +141,6 @@ class BoardService:
             )
             if user is None:
                 return 
-            print(
-                "CURSOR:",
-                user.name,
-                message["x"],
-                message["y"],
-            )
             await manager.broadcast(
                 board_id=board_id, 
                 message = {

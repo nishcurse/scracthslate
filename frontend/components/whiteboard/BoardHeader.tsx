@@ -6,6 +6,7 @@ import { Icon } from "@iconify/react";
 import { useRouter } from "next/navigation";
 
 import { ShareBoardModal } from "./ShareBoardModal";
+import { useBoardStore } from "@/stores/board-store";
 import { useBoardMembers } from "@/hooks/useBoardMembers";
 import { User } from "@/types/user";
 
@@ -24,10 +25,22 @@ export function BoardHeader({
 
     const [shareOpen, setShareOpen] = useState(false);
 
-    const {
-        members,
-        addMember,
-    } = useBoardMembers(boardId);
+    // Users currently connected to this board
+    const liveUsers = useBoardStore(
+        (state) => state.liveUsers
+    );
+
+    // Used by the Share modal
+    const { addMember } = useBoardMembers(boardId);
+
+    const liveUserList = Object.values(liveUsers);
+
+    const visibleUsers = liveUserList.slice(0, 3);
+
+    const remainingUsers = Math.max(
+        liveUserList.length - 3,
+        0
+    );
 
     return (
         <>
@@ -40,26 +53,45 @@ export function BoardHeader({
                         {/* Back to Dashboard */}
                         <button
                             type="button"
-                            onClick={() => router.push("/dashboard")}
+                            onClick={() =>
+                                router.push("/dashboard")
+                            }
                             aria-label="Back to dashboard"
-                            className="group flex h-9 w-9 items-center justify-center border-[3px] border-ink bg-paper transition-colors hover:bg-ink hover:text-acid"
+                            className="
+                                group
+                                flex
+                                h-9
+                                w-9
+                                items-center
+                                justify-center
+                                border-[3px]
+                                border-ink
+                                bg-paper
+                                transition-colors
+                                hover:bg-ink
+                                hover:text-acid
+                            "
                         >
                             <Icon
                                 icon="ph:arrow-left-bold"
-                                className="text-lg transition-transform group-hover:-translate-x-0.5"
+                                className="
+                                    text-lg
+                                    transition-transform
+                                    group-hover:-translate-x-0.5
+                                "
                             />
                         </button>
 
                         {/* Logo */}
                         <div className="flex h-9 w-9 items-center justify-center border-[3px] border-ink bg-ink">
-                            <span className="font-black text-lg text-acid">
+                            <span className="text-lg font-black text-acid">
                                 S
                             </span>
                         </div>
 
                         {/* Board identity */}
                         <div className="flex items-center gap-2">
-                            <span className="font-black text-lg uppercase tracking-tight">
+                            <span className="text-lg font-black uppercase tracking-tight">
                                 SCRATCHSLATE
                             </span>
 
@@ -71,13 +103,17 @@ export function BoardHeader({
                                 type="button"
                                 className="group flex cursor-pointer items-center gap-2"
                             >
-                                <span className="font-black text-lg uppercase tracking-tight">
+                                <span className="text-lg font-black uppercase tracking-tight">
                                     {boardTitle}
                                 </span>
 
                                 <Icon
                                     icon="ph:pencil-simple-bold"
-                                    className="text-ink/40 transition-colors group-hover:text-ink"
+                                    className="
+                                        text-ink/40
+                                        transition-colors
+                                        group-hover:text-ink
+                                    "
                                 />
                             </button>
                         </div>
@@ -89,63 +125,96 @@ export function BoardHeader({
                         {/* Collaborators + Live */}
                         <div className="flex items-center gap-4">
 
-                            {/* Collaborator avatars */}
+                            {/* Live collaborator avatars */}
                             <div className="flex items-center">
+                                {visibleUsers.map(
+                                    (member, index) => {
+                                        const fallbackAvatar =
+                                            `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(
+                                                member.id
+                                            )}`;
 
-                                {/* Current user */}
-                                <div className="relative z-20 -mr-2 h-8 w-8 overflow-hidden border-[3px] border-ink bg-acid">
-                                    <Image
-                                        src={user.picture}
-                                        alt={user.name}
-                                        width={32}
-                                        height={32}
-                                        unoptimized
-                                        className="h-full w-full object-cover"
-                                    />
-                                </div>
-
-                                {/* First collaborator */}
-                                {members.slice(0, 1).map((member) => (
-                                    <div
-                                        key={member.user_id}
-                                        className="relative z-10 -mr-2 h-8 w-8 overflow-hidden border-[3px] border-ink bg-paper"
-                                        title={member.name}
-                                    >
-                                        {member.picture ? (
-                                            <Image
-                                                src={member.picture}
-                                                alt={member.name}
-                                                width={32}
-                                                height={32}
-                                                unoptimized
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <div className="flex h-full w-full items-center justify-center font-mono text-[10px] font-bold">
-                                                {member.name
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                        return (
+                                            <div
+                                                key={member.id}
+                                                className={`
+                                                    relative
+                                                    h-8
+                                                    w-8
+                                                    overflow-hidden
+                                                    border-[3px]
+                                                    border-ink
+                                                    bg-paper
+                                                    ${index > 0
+                                                        ? "-ml-2"
+                                                        : ""
+                                                    }
+                                                `}
+                                                title={member.name}
+                                            >
+                                                <Image
+                                                    src={
+                                                        member.picture ||
+                                                        fallbackAvatar
+                                                    }
+                                                    alt={member.name}
+                                                    width={32}
+                                                    height={32}
+                                                    unoptimized
+                                                    className="h-full w-full object-cover"
+                                                    onError={(
+                                                        event
+                                                    ) => {
+                                                        if (
+                                                            event
+                                                                .currentTarget
+                                                                .src !==
+                                                            fallbackAvatar
+                                                        ) {
+                                                            event.currentTarget.src =
+                                                                fallbackAvatar;
+                                                        }
+                                                    }}
+                                                />
                                             </div>
-                                        )}
-                                    </div>
-                                ))}
+                                        );
+                                    }
+                                )}
 
-                                {/* Remaining collaborators */}
-                                {members.length > 1 && (
-                                    <div className="relative z-0 flex h-8 w-8 items-center justify-center border-[3px] border-ink bg-ink font-mono text-[10px] font-bold text-acid">
-                                        +{members.length - 1}
+                                {/* Remaining users */}
+                                {remainingUsers > 0 && (
+                                    <div
+                                        className="
+                                            relative
+                                            -ml-2
+                                            flex
+                                            h-8
+                                            w-8
+                                            items-center
+                                            justify-center
+                                            border-[3px]
+                                            border-ink
+                                            bg-ink
+                                            font-mono
+                                            text-[10px]
+                                            font-bold
+                                            text-acid
+                                        "
+                                        title={`${remainingUsers} more users online`}
+                                    >
+                                        +{remainingUsers}
                                     </div>
                                 )}
                             </div>
 
-                            {/* Live */}
+                            {/* Live count */}
                             <div className="flex items-center gap-1.5 font-mono text-xs font-bold">
                                 <span className="animate-pulse text-acid">
                                     ●
                                 </span>
 
                                 <span className="uppercase tracking-widest">
-                                    LIVE
+                                    {liveUserList.length} LIVE
                                 </span>
                             </div>
                         </div>
@@ -156,8 +225,26 @@ export function BoardHeader({
                             {/* Share */}
                             <button
                                 type="button"
-                                onClick={() => setShareOpen(true)}
-                                className="border-[3px] border-ink bg-acid px-5 py-2.5 text-xs font-black uppercase tracking-widest text-ink shadow-brutal-sm transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none"
+                                onClick={() =>
+                                    setShareOpen(true)
+                                }
+                                className="
+                                    border-[3px]
+                                    border-ink
+                                    bg-acid
+                                    px-5
+                                    py-2.5
+                                    text-xs
+                                    font-black
+                                    uppercase
+                                    tracking-widest
+                                    text-ink
+                                    shadow-brutal-sm
+                                    transition-all
+                                    hover:translate-x-[2px]
+                                    hover:translate-y-[2px]
+                                    hover:shadow-none
+                                "
                             >
                                 SHARE
                             </button>
@@ -166,7 +253,18 @@ export function BoardHeader({
                             <button
                                 type="button"
                                 aria-label="Board menu"
-                                className="flex h-10 w-10 items-center justify-center border-[3px] border-ink transition-colors hover:bg-ink hover:text-acid"
+                                className="
+                                    flex
+                                    h-10
+                                    w-10
+                                    items-center
+                                    justify-center
+                                    border-[3px]
+                                    border-ink
+                                    transition-colors
+                                    hover:bg-ink
+                                    hover:text-acid
+                                "
                             >
                                 <Icon
                                     icon="ph:dots-three-outline-vertical-fill"
@@ -184,7 +282,9 @@ export function BoardHeader({
                 onInvite={async (email, role) => {
                     await addMember(email, role);
                 }}
-                onClose={() => setShareOpen(false)}
+                onClose={() =>
+                    setShareOpen(false)
+                }
             />
         </>
     );

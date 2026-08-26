@@ -1,2 +1,2 @@
-export type Tool = "select" | "pen" | "rectangle" | "line" | "ellipse" ; 
+export type Tool = "select" | "pen" | "rectangle" | "line" | "ellipse" | "eraser" | "text" ; 
 // will update in future saare tools daal dunga hehe 

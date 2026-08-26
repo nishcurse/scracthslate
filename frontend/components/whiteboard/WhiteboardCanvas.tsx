@@ -1,25 +1,28 @@
 "use client";
 
-import { useEffect, useRef , useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Konva from "konva";
-import { Layer, Stage , Transformer , Circle} from "react-konva";
+import {
+    Layer,
+    Stage,
+    Transformer,
+    Circle,
+} from "react-konva";
 
 import FreehandObject from "./objects/freehand";
 import RectangleObject from "./objects/rectangle";
-import EllipseObject from "./objects/ellips"
-import LineObject from "./objects/line"
+import EllipseObject from "./objects/ellips";
+import LineObject from "./objects/line";
+import TextObject from "./objects/textobject";
 
 import { useBoardStore } from "@/stores/board-store";
 import { useWindowSize } from "@/hooks/useWindowSize";
 import type { serverEvent } from "@/types/socket";
-import { useDrawingTools } from "@/hooks/useDrawingTools"
-import {usePresence} from "@/hooks/usePresence"
+import { useDrawingTools } from "@/hooks/useDrawingTools";
+import { usePresence } from "@/hooks/usePresence";
 import { BoardObject } from "@/types/board";
-import { DEV_TOOLS_INFO_USER_PREFERENCES_STYLES } from "next/dist/next-devtools/dev-overlay/components/errors/dev-tools-indicator/dev-tools-info/user-preferences";
-
-
-
-
+import { useAuthStore } from "@/stores/auth-store";
+import { PresenceCursor } from "./PresenceCursor";
 
 type Props = {
     send: (message: serverEvent) => void;
@@ -56,7 +59,6 @@ function DotGrid({
 }) {
     const spacing = 24;
 
-    // Convert viewport bounds into world coordinates.
     const worldLeft = -position.x / scale;
     const worldTop = -position.y / scale;
 
@@ -66,19 +68,21 @@ function DotGrid({
     const worldBottom =
         worldTop + height / scale;
 
-    // Start/end slightly outside the viewport
-    // so there are no visible gaps while moving.
     const startX =
-        Math.floor(worldLeft / spacing) * spacing - spacing;
+        Math.floor(worldLeft / spacing) * spacing -
+        spacing;
 
     const endX =
-        Math.ceil(worldRight / spacing) * spacing + spacing;
+        Math.ceil(worldRight / spacing) * spacing +
+        spacing;
 
     const startY =
-        Math.floor(worldTop / spacing) * spacing - spacing;
+        Math.floor(worldTop / spacing) * spacing -
+        spacing;
 
     const endY =
-        Math.ceil(worldBottom / spacing) * spacing + spacing;
+        Math.ceil(worldBottom / spacing) * spacing +
+        spacing;
 
     const dots = [];
 
@@ -100,71 +104,173 @@ function DotGrid({
     return <>{dots}</>;
 }
 
-
-export default function WhiteboardCanvas({ send,
+export default function WhiteboardCanvas({
+    send,
     scale,
     position,
     setScale,
     setPosition,
-} : Props) {
-    const stageRef = useRef<Konva.Stage | null>(null);
+}: Props) {
+    const stageRef =
+        useRef<Konva.Stage | null>(null);
+
+    const transformerRef =
+        useRef<Konva.Transformer | null>(null);
+
+    const textareaRef =
+        useRef<HTMLTextAreaElement | null>(null);
+
+    const editingTextIdRef =
+        useRef<string | null>(null);
+
     const { width, height } = useWindowSize();
 
+    const objects = useBoardStore(
+        (state) => state.objects
+    );
 
-    const objects = useBoardStore((state) => state.objects);
-    const activetool = useBoardStore((state) => state.activetool);
+    const activetool = useBoardStore(
+        (state) => state.activetool
+    );
 
-    const [spacePressed , setSpacePressed] = useState(false);
+    const liveUsers = useBoardStore(
+        (state) => state.liveUsers
+    );
 
-    const updateObject = useBoardStore((state) => state.updateObject);
-    const removeObject = useBoardStore((state) => state.removeObject);
-    const { handlePointerDown, handlePointerMove, handlePointerUp } = useDrawingTools({ stageRef, send , spacePressed });
-    const {sendCursorPosition} = usePresence({send});
-    const selectObjectId = useBoardStore((st) => st.selectObjectId);
-    const selectObject = useBoardStore((st) => st.selectObject);
-    const clearSelection = useBoardStore((st) => st.clearSelection );
-    const transformerRef = useRef<Konva.Transformer | null>(null);
+    const currentUser = useAuthStore(
+        (state) => state.user
+    );
 
+    const updateObject = useBoardStore(
+        (state) => state.updateObject
+    );
 
+    const removeObject = useBoardStore(
+        (state) => state.removeObject
+    );
 
+    const selectObjectId = useBoardStore(
+        (state) => state.selectObjectId
+    );
 
+    const selectObject = useBoardStore(
+        (state) => state.selectObject
+    );
+
+    const clearSelection = useBoardStore(
+        (state) => state.clearSelection
+    );
+
+    const [spacePressed, setSpacePressed] =
+        useState(false);
+
+    const [isEditingText, setIsEditingText] =
+        useState(false);
+
+    const {
+        handlePointerDown,
+        handlePointerMove,
+        handlePointerUp,
+    } = useDrawingTools({
+        stageRef,
+        send,
+        spacePressed,
+
+        onTextCreate: (id) => {
+            editingTextIdRef.current = id;
+
+            setIsEditingText(true);
+
+            requestAnimationFrame(() => {
+                textareaRef.current?.focus();
+            });
+        },
+    });
+
+    const { sendCursorPosition } =
+        usePresence({ send });
+
+    /*
+     * Global keyboard handling.
+     *
+     * Space = pan mode.
+     * But when the textarea is focused,
+     * Space must remain a normal text character.
+     */
     useEffect(() => {
-        const handleKeyDown = (e : KeyboardEvent)=>{
-            if(e.code === "Space"){
-                e.preventDefault(); 
+        const handleKeyDown = (
+            e: KeyboardEvent
+        ) => {
+            const editingTextarea =
+                document.activeElement ===
+                textareaRef.current;
+
+            if (
+                e.code === "Space" &&
+                !editingTextarea
+            ) {
+                e.preventDefault();
                 setSpacePressed(true);
             }
-        }; 
-        const handleKeyUp = (e: KeyboardEvent)=>{
-            if(e.code === "Space"){
-                e.preventDefault(); 
+        };
+
+        const handleKeyUp = (
+            e: KeyboardEvent
+        ) => {
+            const editingTextarea =
+                document.activeElement ===
+                textareaRef.current;
+
+            if (
+                e.code === "Space" &&
+                !editingTextarea
+            ) {
+                e.preventDefault();
                 setSpacePressed(false);
             }
         };
-        window.addEventListener("keydown" , handleKeyDown); 
-        window.addEventListener("keyup" , handleKeyUp); 
+
+        window.addEventListener(
+            "keydown",
+            handleKeyDown
+        );
+
+        window.addEventListener(
+            "keyup",
+            handleKeyUp
+        );
+
         return () => {
-            window.removeEventListener("keydown", handleKeyDown); 
-            window.removeEventListener("keyup", handleKeyUp);
+            window.removeEventListener(
+                "keydown",
+                handleKeyDown
+            );
+
+            window.removeEventListener(
+                "keyup",
+                handleKeyUp
+            );
         };
-    },[])
+    }, []);
 
-    
-
-
-    const handleSelectObject = (id : string) => {
-        if(activetool !== "select"){
+    const handleSelectObject = (
+        id: string
+    ) => {
+        if (activetool !== "select") {
             return;
         }
+
         selectObject(id);
-    }; 
+    };
+
     const handleStagePointerDown = (
-        e: Konva.KonvaEventObject<PointerEvent>,
+        e: Konva.KonvaEventObject<PointerEvent>
     ) => {
         const target = e.target;
 
         if (
-            target.getParent()?.className === "Transformer" ||
+            target.getParent()?.className ===
+            "Transformer" ||
             target.className === "Transformer"
         ) {
             return;
@@ -181,27 +287,36 @@ export default function WhiteboardCanvas({ send,
         handlePointerDown();
     };
 
-    const TransformObject = (id : string , changes : Partial<BoardObject>) => {
-        updateObject(id, changes); 
-        send({
-            type : "object:update", 
-            id,
-            changes,
-        })
-    }; 
-
-
-    const moveObject = (id: string, x: number, y: number) => {
-        const changes = { x, y };
+    const TransformObject = (
+        id: string,
+        changes: Partial<BoardObject>
+    ) => {
         updateObject(id, changes);
+
         send({
             type: "object:update",
             id,
-            changes
-        })
+            changes,
+        });
     };
+
+    const moveObject = (
+        id: string,
+        x: number,
+        y: number
+    ) => {
+        const changes = { x, y };
+
+        updateObject(id, changes);
+
+        send({
+            type: "object:update",
+            id,
+            changes,
+        });
+    };
+
     const deleteObject = (id: string) => {
-        
         removeObject(id);
 
         send({
@@ -209,23 +324,156 @@ export default function WhiteboardCanvas({ send,
             id,
         });
     };
+
+    const finishTextEditing = () => {
+        const id =
+            editingTextIdRef.current;
+
+        const textarea =
+            textareaRef.current;
+
+        if (!id || !textarea) {
+            return;
+        }
+
+        /*
+         * Do NOT trim the actual text.
+         * Spaces typed by the user must be preserved.
+         */
+        const text = textarea.value;
+
+        if (text.trim().length === 0) {
+            deleteObject(id);
+        } else {
+            const changes = {
+                text,
+            };
+
+            updateObject(id, changes);
+
+            send({
+                type: "object:update",
+                id,
+                changes,
+            });
+        }
+
+        editingTextIdRef.current = null;
+
+        setIsEditingText(false);
+
+        textarea.value = "";
+    };
+
+    const cancelTextEditing = () => {
+        const id =
+            editingTextIdRef.current;
+
+        if (id) {
+            deleteObject(id);
+        }
+
+        editingTextIdRef.current = null;
+
+        setIsEditingText(false);
+
+        if (textareaRef.current) {
+            textareaRef.current.value = "";
+        }
+    };
+
     const getPointerCoordinates = () => {
-        const stage = stageRef.current; 
-        if(!stage){
+        const stage = stageRef.current;
+
+        if (!stage) {
             return;
         }
-        const pointer = stage.getPointerPosition(); 
-        if(!pointer){
+
+        const pointer =
+            stage.getPointerPosition();
+
+        if (!pointer) {
             return;
         }
-        const transform = stage.getAbsoluteTransform().copy().invert(); 
+
+        const transform =
+            stage
+                .getAbsoluteTransform()
+                .copy()
+                .invert();
+
         return transform.point(pointer);
     };
 
-
-    // applying transformer over the object 
+    /*
+     * Keep textarea positioned over the
+     * corresponding Konva text object.
+     */
     useEffect(() => {
-        const transformer = transformerRef.current;
+        if (!isEditingText) {
+            return;
+        }
+
+        const id =
+            editingTextIdRef.current;
+
+        if (!id) {
+            return;
+        }
+
+        const object = objects[id];
+
+        if (
+            !object ||
+            object.type !== "text"
+        ) {
+            return;
+        }
+
+        const textarea =
+            textareaRef.current;
+
+        if (!textarea) {
+            return;
+        }
+
+        textarea.style.left =
+            `${position.x + object.x * scale}px`;
+
+        textarea.style.top =
+            `${position.y + object.y * scale}px`;
+
+        textarea.style.fontSize =
+            `${object.fontSize * scale}px`;
+
+        textarea.style.fontFamily =
+            object.fontFamily;
+
+        textarea.style.color =
+            object.fill;
+
+        textarea.style.width =
+            `${Math.max(120, 300 * scale)}px`;
+
+        textarea.style.minHeight =
+            `${Math.max(
+                40,
+                object.fontSize * scale + 16
+            )}px`;
+    }, [
+        isEditingText,
+        objects,
+        position,
+        scale,
+    ]);
+
+    /*
+     * Transformer
+     */
+    useEffect(() => {
+        const transformer =
+            transformerRef.current;
+
         const stage = stageRef.current;
 
         if (!transformer || !stage) {
@@ -237,10 +485,10 @@ export default function WhiteboardCanvas({ send,
             return;
         }
 
-        
-        
-        const node = stage.findOne(`#${selectObjectId}`);
-        
+        const node = stage.findOne(
+            `#${selectObjectId}`
+        );
+
         if (!node) {
             transformer.nodes([]);
             return;
@@ -249,110 +497,213 @@ export default function WhiteboardCanvas({ send,
         transformer.nodes([node]);
     }, [selectObjectId]);
 
+    /*
+     * Delete / Escape selected object
+     */
     useEffect(() => {
-        const handleKeyDown = (event : KeyboardEvent) => {
-            if(!selectObjectId){
-                return; 
-            }
-            if(event.key === "Escape"){
-                clearSelection(); 
+        const handleKeyDown = (
+            event: KeyboardEvent
+        ) => {
+            /*
+             * Don't let the global Delete/Escape
+             * handler interfere with text editing.
+             */
+            if (isEditingText) {
                 return;
             }
-            if(event.key === "Delete"){
-                event.preventDefault(); 
+
+            if (!selectObjectId) {
+                return;
+            }
+
+            if (event.key === "Escape") {
                 clearSelection();
+                return;
+            }
+
+            if (event.key === "Delete") {
+                event.preventDefault();
+
+                clearSelection();
+
                 deleteObject(selectObjectId);
             }
-        }; 
-        window.addEventListener("keydown" , handleKeyDown); 
+        };
+
+        window.addEventListener(
+            "keydown",
+            handleKeyDown
+        );
+
         return () => {
-            window.removeEventListener("keydown" , handleKeyDown);
+            window.removeEventListener(
+                "keydown",
+                handleKeyDown
+            );
+        };
+    }, [
+        selectObjectId,
+        isEditingText,
+    ]);
 
-        }
-    },[selectObjectId]);
-
-    const handleWheel = (e : Konva.KonvaEventObject<WheelEvent>) =>{
+    const handleWheel = (
+        e: Konva.KonvaEventObject<WheelEvent>
+    ) => {
         e.evt.preventDefault();
-        const stage = stageRef.current; 
-        if(!stage) return; 
-        const pointer = stage.getPointerPosition(); 
-        if(!pointer) return;
-        const oldScale = stage.scaleX(); 
-        const scaleBy = 1.05; 
-        const mousePointTo = {
-            x : (pointer.x - stage.x()) / oldScale,
-            y : (pointer.y - stage.y()) / oldScale, 
-        }; 
-        const direction = e.evt.deltaY > 0 ? -1 : 1; 
-        const newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
-        const clampedScale = Math.min(5, Math.max(0.2, newScale)); 
-        const newPosition = {
-            x : pointer.x - mousePointTo.x * clampedScale, 
-            y : pointer.y - mousePointTo.y * clampedScale,
+
+        const stage = stageRef.current;
+
+        if (!stage) {
+            return;
         }
-        setScale(clampedScale); 
+
+        const pointer =
+            stage.getPointerPosition();
+
+        if (!pointer) {
+            return;
+        }
+
+        const oldScale = stage.scaleX();
+
+        const scaleBy = 1.05;
+
+        const mousePointTo = {
+            x:
+                (pointer.x - stage.x()) /
+                oldScale,
+
+            y:
+                (pointer.y - stage.y()) /
+                oldScale,
+        };
+
+        const direction =
+            e.evt.deltaY > 0 ? -1 : 1;
+
+        const newScale =
+            direction > 0
+                ? oldScale * scaleBy
+                : oldScale / scaleBy;
+
+        const clampedScale = Math.min(
+            5,
+            Math.max(0.2, newScale)
+        );
+
+        const newPosition = {
+            x:
+                pointer.x -
+                mousePointTo.x *
+                clampedScale,
+
+            y:
+                pointer.y -
+                mousePointTo.y *
+                clampedScale,
+        };
+
+        setScale(clampedScale);
         setPosition(newPosition);
-    }
-
-
-
+    };
 
     return (
         <div className="absolute inset-x-0 bottom-0 top-[68px] bg-[#F7F7F5]">
-        <Stage
-            ref={stageRef}
-            width={width}
-            height={height - 68}
-            x={position.x}
-            y={position.y}
-            scaleX={scale}
-            scaleY={scale}
-            draggable={spacePressed}
-            onWheel={handleWheel}
-            onPointerDown={handleStagePointerDown}
-            onPointerMove={() => {
-                handlePointerMove();
 
-                if (spacePressed) {
-                    return;
+            {/* Text editor */}
+            {isEditingText && (
+                <textarea
+                    ref={textareaRef}
+                    autoFocus
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            finishTextEditing();
+                        }
+
+                        if (event.key === "Escape") {
+                            event.preventDefault();
+                            cancelTextEditing();
+                        }
+                    }}
+                    className="
+                        absolute
+                        z-50
+                        resize-none
+                        overflow-hidden
+                        border-[2px]
+                        border-[#0057FF]
+                        bg-paper
+                        px-2
+                        py-1
+                        font-mono
+                        text-base
+                        outline-none
+                    "
+                />
+            )}
+
+            <Stage
+                ref={stageRef}
+                width={width}
+                height={height - 68}
+                x={position.x}
+                y={position.y}
+                scaleX={scale}
+                scaleY={scale}
+                draggable={spacePressed}
+                onWheel={handleWheel}
+                onPointerDown={
+                    handleStagePointerDown
                 }
+                onPointerMove={() => {
+                    handlePointerMove();
 
-                const position = getPointerCoordinates();
+                    if (spacePressed) {
+                        return;
+                    }
 
-                if (!position) {
-                    return;
-                }
+                    const pointer =
+                        getPointerCoordinates();
 
-                sendCursorPosition(
-                    position.x,
-                    position.y,
-                );
-            }}
-            onPointerUp={handlePointerUp}
-            onDragEnd={(e) => {
-                if (!spacePressed) return;
+                    if (!pointer) {
+                        return;
+                    }
 
-                setPosition({
-                    x: e.target.x(),
-                    y: e.target.y(),
-                });
-            }}
-            style={{
-                cursor: spacePressed
-                    ? "grab"
-                    : activetool === "select"
-                        ? "default"
-                        : "crosshair",
-            }}
-            onDragMove={(e) => {
-                if (!spacePressed) return;
+                    sendCursorPosition(
+                        pointer.x,
+                        pointer.y
+                    );
+                }}
+                onPointerUp={handlePointerUp}
+                onDragEnd={(e) => {
+                    if (!spacePressed) {
+                        return;
+                    }
 
-                setPosition({
-                    x: e.target.x(),
-                    y: e.target.y(),
-                });
-            }}
-        >
+                    setPosition({
+                        x: e.target.x(),
+                        y: e.target.y(),
+                    });
+                }}
+                style={{
+                    cursor: spacePressed
+                        ? "grab"
+                        : activetool === "select"
+                            ? "default"
+                            : "crosshair",
+                }}
+                onDragMove={(e) => {
+                    if (!spacePressed) {
+                        return;
+                    }
+
+                    setPosition({
+                        x: e.target.x(),
+                        y: e.target.y(),
+                    });
+                }}
+            >
                 <Layer listening={false}>
                     <DotGrid
                         width={width}
@@ -362,73 +713,163 @@ export default function WhiteboardCanvas({ send,
                     />
                 </Layer>
 
-            <Layer>
-                {Object.values(objects).map((object) => {
-                    switch (object.type) {
-                        case "rectangle":
-                            return (
-                                <RectangleObject
-                                    key={object.id}
-                                    object={object}
-                                    draggable={activetool === "select"}
-                                    onMove={moveObject}
-                                    onDelete={deleteObject}
-                                    onSelect={handleSelectObject}
-                                    onTransform={TransformObject}
-                                />
-                            );
+                <Layer>
+                    {Object.values(objects).map(
+                        (object) => {
+                            switch (object.type) {
+                                case "rectangle":
+                                    return (
+                                        <RectangleObject
+                                            key={object.id}
+                                            object={object}
+                                            draggable={
+                                                activetool ===
+                                                "select"
+                                            }
+                                            onMove={
+                                                moveObject
+                                            }
+                                            onDelete={
+                                                deleteObject
+                                            }
+                                            onSelect={
+                                                handleSelectObject
+                                            }
+                                            onTransform={
+                                                TransformObject
+                                            }
+                                        />
+                                    );
 
-                        case "freehand":
-                            return (
-                                <FreehandObject
-                                    key={object.id}
-                                    object={object}
-                                    onSelect={handleSelectObject}
-                                    draggable = {activetool === "select"}
-                                    onMove={moveObject}
-                                    onTransform={TransformObject}
-                                />
-                            );
-                        case "ellipse":
-                            return (
-                                <EllipseObject
-                                    key={object.id}
-                                    object={object}
-                                    onSelect={handleSelectObject}
-                                    draggable = {activetool == "select"}
-                                    onMove={moveObject}
-                                    onTransform={TransformObject}
-                                />
-                            );
-                        case "line":
-                            return (
-                                <LineObject
-                                    key={object.id}
-                                    object={object}
-                                    onSelect={handleSelectObject}
-                                    draggable = {activetool==="select"}
-                                    onMove={moveObject}
-                                    onTransform={TransformObject}
-                                />
-                            );
-                    }
-                })}
-                <Transformer
-                    ref={transformerRef}
-                    rotateEnabled
-                    boundBoxFunc={(oldBox, newBox) => {
+                                case "freehand":
+                                    return (
+                                        <FreehandObject
+                                            key={object.id}
+                                            object={object}
+                                            onSelect={
+                                                handleSelectObject
+                                            }
+                                            draggable={
+                                                activetool ===
+                                                "select"
+                                            }
+                                            onMove={
+                                                moveObject
+                                            }
+                                            onTransform={
+                                                TransformObject
+                                            }
+                                        />
+                                    );
+
+                                case "ellipse":
+                                    return (
+                                        <EllipseObject
+                                            key={object.id}
+                                            object={object}
+                                            onSelect={
+                                                handleSelectObject
+                                            }
+                                            draggable={
+                                                activetool ===
+                                                "select"
+                                            }
+                                            onMove={
+                                                moveObject
+                                            }
+                                            onTransform={
+                                                TransformObject
+                                            }
+                                        />
+                                    );
+
+                                case "line":
+                                    return (
+                                        <LineObject
+                                            key={object.id}
+                                            object={object}
+                                            onSelect={
+                                                handleSelectObject
+                                            }
+                                            draggable={
+                                                activetool ===
+                                                "select"
+                                            }
+                                            onMove={
+                                                moveObject
+                                            }
+                                            onTransform={
+                                                TransformObject
+                                            }
+                                        />
+                                    );
+
+                                case "text":
+                                    return (
+                                        <TextObject
+                                            key={object.id}
+                                            object={object}
+                                            draggable={
+                                                activetool ===
+                                                "select"
+                                            }
+                                            onMove={
+                                                moveObject
+                                            }
+                                            onSelect={
+                                                handleSelectObject
+                                            }
+                                        />
+                                    );
+                            }
+                        }
+                    )}
+
+                    <Transformer
+                        ref={transformerRef}
+                        rotateEnabled
+                        boundBoxFunc={(
+                            oldBox,
+                            newBox
+                        ) => {
+                            if (
+                                Math.abs(
+                                    newBox.width
+                                ) < 10 ||
+                                Math.abs(
+                                    newBox.height
+                                ) < 10
+                            ) {
+                                return oldBox;
+                            }
+
+                            return newBox;
+                        }}
+                    />
+                </Layer>
+
+                {/* Presence */}
+                <Layer listening={false}>
+                    {Object.values(
+                        liveUsers
+                    ).map((liveUser) => {
                         if (
-                            Math.abs(newBox.width) < 10 ||
-                            Math.abs(newBox.height) < 10
+                            liveUser.id ===
+                            currentUser?.id ||
+                            !liveUser.cursor
                         ) {
-                            return oldBox;
+                            return null;
                         }
 
-                        return newBox;
-                    }}
-                />
-            </Layer>
-        </Stage>
+                        return (
+                            <PresenceCursor
+                                key={liveUser.id}
+                                userId={liveUser.id}
+                            />
+                        );
+                    })}
+                </Layer>
+            </Stage>
         </div>
     );
 }

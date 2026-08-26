@@ -9,6 +9,7 @@ import CanvasControls from "./CanvasControls";
 import { useBoardSocket } from "@/hooks/useBoardSockets";
 import { useAuthStore } from "@/stores/auth-store";
 import {boardClient} from "@/board/board-client"
+import {PresenceNotifications} from "./PresenceNotification"
 
 type Props = {
   boardId: string;
@@ -84,7 +85,7 @@ export default function Whiteboard({ boardId }: Props) {
         setScale={setScale}
         setPosition={setPosition}
       />
-
+      <PresenceNotifications />
       <Toolbar />
 
       <CanvasControls

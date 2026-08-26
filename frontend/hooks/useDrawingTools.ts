@@ -5,18 +5,21 @@ import type konva from "konva";
 import { useBoardStore } from "@/stores/board-store"
 import { serverEvent } from "@/types/socket"
 import { BoardObject } from "@/types/board"
+import { Berkshire_Swash } from "next/font/google";
 
 
 type props = {
     stageRef: React.RefObject<konva.Stage | null>;
     send: (message: serverEvent) => void;
     spacePressed: boolean,
+    onTextCreate?: (id: string) => void;
 };
 
 export function useDrawingTools({
     stageRef,
     send,
     spacePressed,
+    onTextCreate,
 }: props) {
     const activetool = useBoardStore((st) => st.activetool)
     const addObject = useBoardStore((state) => state.addObject);
@@ -27,9 +30,13 @@ export function useDrawingTools({
     const shapeIdRef = useRef<string | null>(null);
     const shapeStartRef = useRef<{ x: number; y: number; } | null>(null);
     const drawingIdRef = useRef<string | null>(null);
+    const eraserRef = useRef(false);
+    const erasedObjectRef = useRef<Set<string>>(new Set());
 
     const pendingPointsRef = useRef<number[]>([]);
     const lastSendTimeRef = useRef(0);
+
+
 
     const flushPendingPoints = () => {
         const drawingId = drawingIdRef.current;
@@ -80,6 +87,44 @@ export function useDrawingTools({
         send({
             type: "object:create",
             object
+        });
+    };
+
+    const eraseObject = (x: number, y: number) => {
+        const stage = stageRef.current;
+
+        if (!stage) {
+            return;
+        }
+
+        const shape = stage.getIntersection({
+            x,
+            y,
+        });
+
+        if (!shape) {
+            return;
+        }
+
+        const objectId = shape.id();
+
+        if (!objectId) {
+            return;
+        }
+
+        if (erasedObjectRef.current.has(objectId)) {
+            return;
+        }
+
+        erasedObjectRef.current.add(objectId);
+
+        useBoardStore
+            .getState()
+            .removeObject(objectId);
+
+        send({
+            type: "object:delete",
+            id: objectId,
         });
     };
 
@@ -178,6 +223,30 @@ export function useDrawingTools({
             object,
         })
     };
+    const startText = (x: number, y: number) => {
+        const object: BoardObject = {
+            id: crypto.randomUUID(),
+            type: "text",
+            x,
+            y,
+            text: "",
+            fontSize: 24,
+            fontFamily: "Arial",
+            fill: "black",
+            rotation: 0,
+        };
+
+        shapeIdRef.current = object.id;
+
+        addObject(object);
+
+        send({
+            type: "object:create",
+            object,
+        });
+
+        return object.id;
+    };
     const resizeEllipse = (currX: number, currY: number) => {
         const id = shapeIdRef.current;
         const start = shapeStartRef.current;
@@ -268,6 +337,23 @@ export function useDrawingTools({
             case "line":
                 startLine(position.x, position.y);
                 break;
+            case "text":
+                const textId = startText(
+                    position.x,
+                    position.y,
+                );
+
+                onTextCreate?.(textId);
+                break;
+                
+            case "eraser":
+                eraserRef.current = true;
+                erasedObjectRef.current.clear();
+                eraseObject(
+                    position.x,
+                    position.y,
+                );
+                break;
             default:
                 break;
         }
@@ -295,6 +381,14 @@ export function useDrawingTools({
                 break;
             case "line":
                 resizeLine(position.x, position.y);
+                break;
+            case "eraser":
+                if (eraserRef.current) {
+                    eraseObject(
+                        position.x,
+                        position.y,
+                    );
+                }
                 break;
             default:
                 break;
@@ -352,6 +446,12 @@ export function useDrawingTools({
                     })
                 }
                 shapeIdRef.current = null;
+                break;
+            case "eraser":
+                eraserRef.current = false;
+                erasedObjectRef.current.clear();
+                break;
+            default:
                 break;
         }
     };

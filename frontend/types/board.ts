@@ -31,6 +31,14 @@ export type Line = BaseBoardObject & {
   points : number[];
 };
 
+export type Text = BaseBoardObject & {
+    type: "text";
+    text: string;
+    fontSize: number;
+    fontFamily: string;
+    fill: string;
+};
+
 
 export type BoardObject = 
 Rectangle 
@@ -39,4 +47,7 @@ Freehand
 |
 Line
 |
-Ellipse;
+Ellipse
+|
+Text
+;

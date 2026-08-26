@@ -5,9 +5,12 @@ import { useEffect, useRef } from "react";
 import { useBoardStore } from "@/stores/board-store";
 import type { serverEvent } from "@/types/socket";
 import { getAccessToken } from "@/auth/token";
+import {usePresenceStore} from "@/stores/presence-store"
+
 
 export function useBoardSocket(boardId: string) {
     const socketRef = useRef<WebSocket | null>(null);
+
 
     useEffect(() => {
         const token = getAccessToken();
@@ -32,6 +35,7 @@ export function useBoardSocket(boardId: string) {
             console.log("WebSocket RECEIVED:", message);
 
             const store = useBoardStore.getState();
+            const presenceStore = usePresenceStore.getState();
 
             switch (message.type) {
                 case "board:snapshot":
@@ -65,10 +69,19 @@ export function useBoardSocket(boardId: string) {
 
                 case "presence:join":
                     store.addLiveUser(message.user);
+                    presenceStore.addNotification(
+                        "join",
+                        message.user.name,
+                    );
                     break;
 
                 case "presence:leave":
                     store.removeLiveUser(message.user.id);
+                    presenceStore.addNotification(
+                        "leave",
+                        message.user.name,
+                    );
+
                     break;
 
                 case "presence:cursor":
