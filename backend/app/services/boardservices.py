@@ -65,7 +65,7 @@ class BoardService:
         })
         await websocket.send_json({
             "type" : "presence:snapshot", 
-            "user" : [
+            "users" : [
                 manager.user_helper(existing_user)
                 for existing_user in existing_users
             ] + [
@@ -141,7 +141,12 @@ class BoardService:
             )
             if user is None:
                 return 
-
+            print(
+                "CURSOR:",
+                user.name,
+                message["x"],
+                message["y"],
+            )
             await manager.broadcast(
                 board_id=board_id, 
                 message = {

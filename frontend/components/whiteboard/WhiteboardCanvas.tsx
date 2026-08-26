@@ -2,7 +2,7 @@
 
 import { useEffect, useRef , useState } from "react";
 import Konva from "konva";
-import { KonvaNodeComponent, Layer, Stage , Transformer , Circle} from "react-konva";
+import { Layer, Stage , Transformer , Circle} from "react-konva";
 
 import FreehandObject from "./objects/freehand";
 import RectangleObject from "./objects/rectangle";
@@ -13,7 +13,11 @@ import { useBoardStore } from "@/stores/board-store";
 import { useWindowSize } from "@/hooks/useWindowSize";
 import type { serverEvent } from "@/types/socket";
 import { useDrawingTools } from "@/hooks/useDrawingTools"
+import {usePresence} from "@/hooks/usePresence"
 import { BoardObject } from "@/types/board";
+import { DEV_TOOLS_INFO_USER_PREFERENCES_STYLES } from "next/dist/next-devtools/dev-overlay/components/errors/dev-tools-indicator/dev-tools-info/user-preferences";
+
+
 
 
 
@@ -115,6 +119,7 @@ export default function WhiteboardCanvas({ send,
     const updateObject = useBoardStore((state) => state.updateObject);
     const removeObject = useBoardStore((state) => state.removeObject);
     const { handlePointerDown, handlePointerMove, handlePointerUp } = useDrawingTools({ stageRef, send , spacePressed });
+    const {sendCursorPosition} = usePresence({send});
     const selectObjectId = useBoardStore((st) => st.selectObjectId);
     const selectObject = useBoardStore((st) => st.selectObject);
     const clearSelection = useBoardStore((st) => st.clearSelection );
@@ -203,6 +208,18 @@ export default function WhiteboardCanvas({ send,
             type: "object:delete",
             id,
         });
+    };
+    const getPointerCoordinates = () => {
+        const stage = stageRef.current; 
+        if(!stage){
+            return;
+        }
+        const pointer = stage.getPointerPosition(); 
+        if(!pointer){
+            return;
+        }
+        const transform = stage.getAbsoluteTransform().copy().invert(); 
+        return transform.point(pointer);
     };
 
 
@@ -293,7 +310,24 @@ export default function WhiteboardCanvas({ send,
             draggable={spacePressed}
             onWheel={handleWheel}
             onPointerDown={handleStagePointerDown}
-            onPointerMove={handlePointerMove}
+            onPointerMove={() => {
+                handlePointerMove();
+
+                if (spacePressed) {
+                    return;
+                }
+
+                const position = getPointerCoordinates();
+
+                if (!position) {
+                    return;
+                }
+
+                sendCursorPosition(
+                    position.x,
+                    position.y,
+                );
+            }}
             onPointerUp={handlePointerUp}
             onDragEnd={(e) => {
                 if (!spacePressed) return;

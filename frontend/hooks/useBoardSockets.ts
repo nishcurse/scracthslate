@@ -29,7 +29,7 @@ export function useBoardSocket(boardId: string) {
 
         socket.onmessage = (event) => {
             const message: serverEvent = JSON.parse(event.data);
-
+            console.log("WebSocket RECEIVED:", message);
 
             const store = useBoardStore.getState();
 
@@ -57,6 +57,28 @@ export function useBoardSocket(boardId: string) {
                     store.appendPoints(
                         message.id,
                         message.points,
+                    );
+                    break;
+                case "presence:snapshot":
+                    store.setLiveUsers(message.users);
+                    break;
+
+                case "presence:join":
+                    store.addLiveUser(message.user);
+                    break;
+
+                case "presence:leave":
+                    store.removeLiveUser(message.user.id);
+                    break;
+
+                case "presence:cursor":
+                    if(!message.user){
+                        return;
+                    }
+                    store.updateCursor(
+                        message.user.id,
+                        message.x,
+                        message.y,
                     );
                     break;
             }
