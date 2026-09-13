@@ -120,6 +120,9 @@ export default function WhiteboardCanvas({
     const textareaRef =
         useRef<HTMLTextAreaElement | null>(null);
 
+    const textMeasureRef =
+        useRef<HTMLSpanElement | null>(null);
+
     const editingTextIdRef =
         useRef<string | null>(null);
 
@@ -167,6 +170,12 @@ export default function WhiteboardCanvas({
     const [isEditingText, setIsEditingText] =
         useState(false);
 
+    const [editingTextId, setEditingTextId] =
+        useState<string | null>(null);
+
+    const [editorText, setEditorText] =
+        useState("");
+
     const {
         handlePointerDown,
         handlePointerMove,
@@ -178,7 +187,8 @@ export default function WhiteboardCanvas({
 
         onTextCreate: (id) => {
             editingTextIdRef.current = id;
-
+            setEditingTextId(id);
+            setEditorText("");
             setIsEditingText(true);
 
             requestAnimationFrame(() => {
@@ -190,13 +200,6 @@ export default function WhiteboardCanvas({
     const { sendCursorPosition } =
         usePresence({ send });
 
-    /*
-     * Global keyboard handling.
-     *
-     * Space = pan mode.
-     * But when the textarea is focused,
-     * Space must remain a normal text character.
-     */
     useEffect(() => {
         const handleKeyDown = (
             e: KeyboardEvent
@@ -256,7 +259,10 @@ export default function WhiteboardCanvas({
     const handleSelectObject = (
         id: string
     ) => {
-        if (activetool !== "select") {
+        if (
+            activetool !== "select" ||
+            isEditingText
+        ) {
             return;
         }
 
@@ -317,6 +323,11 @@ export default function WhiteboardCanvas({
     };
 
     const deleteObject = (id: string) => {
+        if (selectObjectId === id) {
+            transformerRef.current?.nodes([]);
+            clearSelection();
+        }
+
         removeObject(id);
 
         send({
@@ -329,18 +340,11 @@ export default function WhiteboardCanvas({
         const id =
             editingTextIdRef.current;
 
-        const textarea =
-            textareaRef.current;
-
-        if (!id || !textarea) {
+        if (!id) {
             return;
         }
 
-        /*
-         * Do NOT trim the actual text.
-         * Spaces typed by the user must be preserved.
-         */
-        const text = textarea.value;
+        const text = editorText;
 
         if (text.trim().length === 0) {
             deleteObject(id);
@@ -359,10 +363,9 @@ export default function WhiteboardCanvas({
         }
 
         editingTextIdRef.current = null;
-
+        setEditingTextId(null);
+        setEditorText("");
         setIsEditingText(false);
-
-        textarea.value = "";
     };
 
     const cancelTextEditing = () => {
@@ -374,12 +377,46 @@ export default function WhiteboardCanvas({
         }
 
         editingTextIdRef.current = null;
-
+        setEditingTextId(null);
+        setEditorText("");
         setIsEditingText(false);
+    };
 
-        if (textareaRef.current) {
-            textareaRef.current.value = "";
+    const handleEditText = (id: string) => {
+        if (
+            activetool !== "select" ||
+            isEditingText
+        ) {
+            return;
         }
+
+        const object = objects[id];
+
+        if (
+            !object ||
+            object.type !== "text"
+        ) {
+            return;
+        }
+
+        transformerRef.current?.nodes([]);
+
+        editingTextIdRef.current = id;
+        setEditingTextId(id);
+        setEditorText(object.text);
+        setIsEditingText(true);
+
+        requestAnimationFrame(() => {
+            const textarea =
+                textareaRef.current;
+
+            if (!textarea) {
+                return;
+            }
+
+            textarea.focus();
+            textarea.select();
+        });
     };
 
     const getPointerCoordinates = () => {
@@ -405,10 +442,6 @@ export default function WhiteboardCanvas({
         return transform.point(pointer);
     };
 
-    /*
-     * Keep textarea positioned over the
-     * corresponding Konva text object.
-     */
     useEffect(() => {
         if (!isEditingText) {
             return;
@@ -433,7 +466,10 @@ export default function WhiteboardCanvas({
         const textarea =
             textareaRef.current;
 
-        if (!textarea) {
+        const measure =
+            textMeasureRef.current;
+
+        if (!textarea || !measure) {
             return;
         }
 
@@ -452,24 +488,34 @@ export default function WhiteboardCanvas({
         textarea.style.color =
             object.fill;
 
-        textarea.style.width =
-            `${Math.max(120, 300 * scale)}px`;
+        measure.style.fontSize =
+            `${object.fontSize * scale}px`;
 
-        textarea.style.minHeight =
+        measure.style.fontFamily =
+            object.fontFamily;
+
+        measure.textContent =
+            editorText || " ";
+
+        textarea.style.width =
             `${Math.max(
                 40,
-                object.fontSize * scale + 16
+                measure.offsetWidth + 10
+            )}px`;
+
+        textarea.style.height =
+            `${Math.max(
+                28,
+                object.fontSize * scale + 10
             )}px`;
     }, [
         isEditingText,
+        editorText,
         objects,
         position,
         scale,
     ]);
 
-    /*
-     * Transformer
-     */
     useEffect(() => {
         const transformer =
             transformerRef.current;
@@ -480,8 +526,15 @@ export default function WhiteboardCanvas({
             return;
         }
 
+        if (isEditingText) {
+            transformer.nodes([]);
+            transformer.getLayer()?.batchDraw();
+            return;
+        }
+
         if (!selectObjectId) {
             transformer.nodes([]);
+            transformer.getLayer()?.batchDraw();
             return;
         }
 
@@ -491,23 +544,22 @@ export default function WhiteboardCanvas({
 
         if (!node) {
             transformer.nodes([]);
+            transformer.getLayer()?.batchDraw();
             return;
         }
 
         transformer.nodes([node]);
-    }, [selectObjectId]);
+        transformer.getLayer()?.batchDraw();
+    }, [
+        selectObjectId,
+        objects,
+        isEditingText,
+    ]);
 
-    /*
-     * Delete / Escape selected object
-     */
     useEffect(() => {
         const handleKeyDown = (
             event: KeyboardEvent
         ) => {
-            /*
-             * Don't let the global Delete/Escape
-             * handler interfere with text editing.
-             */
             if (isEditingText) {
                 return;
             }
@@ -610,37 +662,53 @@ export default function WhiteboardCanvas({
     return (
         <div className="absolute inset-x-0 bottom-0 top-[68px] bg-[#F7F7F5]">
 
-            {/* Text editor */}
             {isEditingText && (
-                <textarea
-                    ref={textareaRef}
-                    autoFocus
-                    onKeyDown={(event) => {
-                        if (event.key === "Enter") {
-                            event.preventDefault();
-                            finishTextEditing();
-                        }
+                <>
+                    <span
+                        ref={textMeasureRef}
+                        className="absolute invisible whitespace-pre"
+                    />
 
-                        if (event.key === "Escape") {
-                            event.preventDefault();
-                            cancelTextEditing();
-                        }
-                    }}
-                    className="
-                        absolute
-                        z-50
-                        resize-none
-                        overflow-hidden
-                        border-[2px]
-                        border-[#0057FF]
-                        bg-paper
-                        px-2
-                        py-1
-                        font-mono
-                        text-base
-                        outline-none
-                    "
-                />
+                    <textarea
+                        ref={textareaRef}
+                        value={editorText}
+                        autoFocus
+                        onChange={(event) => {
+                            setEditorText(
+                                event.target.value
+                            );
+                        }}
+                        onKeyDown={(event) => {
+                            if (
+                                event.key ===
+                                "Enter"
+                            ) {
+                                event.preventDefault();
+                                finishTextEditing();
+                            }
+
+                            if (
+                                event.key ===
+                                "Escape"
+                            ) {
+                                event.preventDefault();
+                                cancelTextEditing();
+                            }
+                        }}
+                        className="
+                            absolute
+                            z-50
+                            resize-none
+                            overflow-hidden
+                            border
+                            border-[#0057FF]
+                            bg-transparent
+                            px-1
+                            py-0
+                            outline-none
+                        "
+                    />
+                </>
             )}
 
             <Stage
@@ -811,7 +879,13 @@ export default function WhiteboardCanvas({
                                             object={object}
                                             draggable={
                                                 activetool ===
-                                                "select"
+                                                "select" &&
+                                                !isEditingText
+                                            }
+                                            editing={
+                                                isEditingText &&
+                                                editingTextId ===
+                                                object.id
                                             }
                                             onMove={
                                                 moveObject
@@ -819,36 +893,40 @@ export default function WhiteboardCanvas({
                                             onSelect={
                                                 handleSelectObject
                                             }
+                                            onEdit={
+                                                handleEditText
+                                            }
                                         />
                                     );
                             }
                         }
                     )}
 
-                    <Transformer
-                        ref={transformerRef}
-                        rotateEnabled
-                        boundBoxFunc={(
-                            oldBox,
-                            newBox
-                        ) => {
-                            if (
-                                Math.abs(
-                                    newBox.width
-                                ) < 10 ||
-                                Math.abs(
-                                    newBox.height
-                                ) < 10
-                            ) {
-                                return oldBox;
-                            }
+                    {!isEditingText && (
+                        <Transformer
+                            ref={transformerRef}
+                            rotateEnabled
+                            boundBoxFunc={(
+                                oldBox,
+                                newBox
+                            ) => {
+                                if (
+                                    Math.abs(
+                                        newBox.width
+                                    ) < 10 ||
+                                    Math.abs(
+                                        newBox.height
+                                    ) < 10
+                                ) {
+                                    return oldBox;
+                                }
 
-                            return newBox;
-                        }}
-                    />
+                                return newBox;
+                            }}
+                        />
+                    )}
                 </Layer>
 
-                {/* Presence */}
                 <Layer listening={false}>
                     {Object.values(
                         liveUsers

@@ -231,7 +231,7 @@ export function useDrawingTools({
             y,
             text: "",
             fontSize: 24,
-            fontFamily: "Arial",
+            fontFamily: "Caveat",
             fill: "black",
             rotation: 0,
         };

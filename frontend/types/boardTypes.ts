@@ -12,3 +12,14 @@ export type BoardMember = {
   email: string;
   picture: string | null;
 };
+
+export type SharedBoard = {
+    id: string;
+    title: string;
+    role: "editor" | "viewer";
+    owner: {
+        id: string;
+        name: string;
+        picture: string | null;
+    };
+};

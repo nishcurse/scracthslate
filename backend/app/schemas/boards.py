@@ -44,4 +44,18 @@ class BoardMemberDetailResponse(BaseModel):
 
     model_config = {
         "from_attributes": True,
-}
+    }
+
+class SharedBoardOwnerResponse(BaseModel):
+    id: str
+    name: str
+    picture: str | None = None
+
+
+class SharedBoardResponse(BaseModel):
+    id: str
+    title: str
+    role: str
+    owner: SharedBoardOwnerResponse
+
+

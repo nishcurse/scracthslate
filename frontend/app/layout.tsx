@@ -3,12 +3,19 @@ import "./globals.css";
 import { Archivo, Archivo_Black, Space_Mono } from "next/font/google";
 import {AuthProvider} from "@/auth/auth-provider"
 import GoogleProvider from "@/providers/google-providers"
-import { envProxy } from "next/dist/build/turborepo-access-trace/env";
+import { Caveat } from "next/font/google";
+import InitialLoader from "@/components/intialLoader";
 
 const archivo = Archivo({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
   variable: "--font-archivo",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-caveat",
 });
 
 const archivoBlack = Archivo_Black({
@@ -34,6 +41,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  
   return (
     <html lang="en">
       <body
@@ -41,6 +49,8 @@ export default function RootLayout({
           ${archivo.variable}
           ${archivoBlack.variable}
           ${spaceMono.variable}
+          ${caveat.variable}
+          }
           min-h-screen
           bg-paper
           text-ink
@@ -50,7 +60,9 @@ export default function RootLayout({
       > 
       <GoogleProvider>
         <AuthProvider>
-          {children}
+          <InitialLoader>
+            {children}          
+          </InitialLoader>
         </AuthProvider>
       </GoogleProvider>
 

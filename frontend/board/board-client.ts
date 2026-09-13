@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 
-import { Board , BoardMember } from "@/types/boardTypes";
+import { Board , BoardMember , SharedBoard } from "@/types/boardTypes";
 
 class BoardClient {
     async getBoards(): Promise<Board[]> {
@@ -71,6 +71,12 @@ class BoardClient {
         const resp = await api.get(`/boards/${board_id}`); 
         return resp.data;
     }
+
+    async getSharedBoards(): Promise<SharedBoard[]> {
+    const response = await api.get("/boards/shared");
+
+    return response.data;
+}
 }
 
 export const boardClient = new BoardClient();

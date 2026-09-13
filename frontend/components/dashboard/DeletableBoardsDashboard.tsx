@@ -11,6 +11,7 @@ import {useRouter} from "next/navigation"
 import {RenameBoardModal} from "./RenameBoardModel"
 import { DeleteConfirmModal } from "./DeleteConfirmModal" 
 import type {Board} from "./types"
+import Link from "next/link.js"
 
 
 export default function DeletableBoardsDashboard() {
@@ -73,6 +74,7 @@ export default function DeletableBoardsDashboard() {
             <h1 className="mb-4 font-black uppercase text-4xl leading-[0.9] tracking-tight sm:text-6xl">
               My Boards
             </h1>
+
             <div className="group relative max-w-xl">
               <label
                 htmlFor="search-boards"
@@ -80,20 +82,78 @@ export default function DeletableBoardsDashboard() {
               >
                 Search / Boards
               </label>
+
               <input
                 id="search-boards"
                 type="text"
                 placeholder="FIND A PROJECT..."
                 value={searchValue}
-                onChange={(event) => setSearchValue(event.target.value)}
+                onChange={(event) =>
+                  setSearchValue(event.target.value)
+                }
                 className="w-full border-[3px] border-ink bg-paper p-4 font-mono text-sm font-bold uppercase tracking-[0.2em] shadow-brutal-sm transition-colors focus:bg-white focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="shrink-0">
-            <button onClick={StartNewModal} className="btn-brutal flex items-center gap-3 border-[3px] border-ink bg-acid px-8 py-4 font-black uppercase tracking-wide text-base text-ink shadow-brutal">
-              <Icon icon="ph:plus-bold" className="text-xl" />
+          <div className="flex shrink-0 items-center gap-4">
+            <Link
+              href="/dashboard/shared"
+              className="
+                btn-brutal
+                flex
+                items-center
+                gap-3
+                whitespace-nowrap
+                border-[3px]
+                border-ink
+                bg-red-500
+                px-6
+                py-4
+                font-black
+                uppercase
+                tracking-wide
+                text-base
+                text-white
+                shadow-brutal
+                transition-all
+                hover:translate-x-[2px]
+                hover:translate-y-[2px]
+                hover:shadow-none
+            "
+            >
+              <Icon
+                icon="ph:users-three-bold"
+                className="text-xl"
+              />
+              Shared With Me
+            </Link>
+
+            <button
+              onClick={StartNewModal}
+              className="
+                btn-brutal
+                flex
+                items-center
+                gap-3
+                whitespace-nowrap
+                border-[3px]
+                border-ink
+                bg-acid
+                px-8
+                py-4
+                font-black
+                uppercase
+                tracking-wide
+                text-base
+                text-ink
+                shadow-brutal
+            "
+            >
+              <Icon
+                icon="ph:plus-bold"
+                className="text-xl"
+              />
               New Board
             </button>
           </div>

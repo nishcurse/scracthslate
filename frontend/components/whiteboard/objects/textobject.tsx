@@ -14,6 +14,10 @@ type Props = {
     ) => void;
 
     onSelect: (id: string) => void;
+
+    onEdit: (id: string) => void;
+
+    editing: boolean;
 };
 
 export default function TextObject({
@@ -21,7 +25,13 @@ export default function TextObject({
     draggable,
     onMove,
     onSelect,
+    onEdit,
+    editing,
 }: Props) {
+    if (editing) {
+        return null;
+    }
+
     return (
         <KonvaText
             id={object.id}
@@ -40,8 +50,18 @@ export default function TextObject({
                     event.target.y(),
                 );
             }}
-            onClick={() => onSelect(object.id)}
-            onTap={() => onSelect(object.id)}
+            onClick={() =>
+                onSelect(object.id)
+            }
+            onTap={() =>
+                onSelect(object.id)
+            }
+            onDblClick={() =>
+                onEdit(object.id)
+            }
+            onDblTap={() =>
+                onEdit(object.id)
+            }
         />
     );
 }

@@ -2,7 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.db.models import BoardMember
+from app.db.models import BoardMember, Board
 
 
 class BoardMemberRepo:
@@ -73,4 +73,20 @@ class BoardMemberRepo:
             )
         )
 
+        return list(result.scalars().all())
+
+    @staticmethod
+    async def get_shared_boards(
+        session: AsyncSession, 
+        user_id : str,
+    ) -> list[BoardMember]: 
+        result = await session.execute(
+            select(BoardMember).options(
+                selectinload(BoardMember.board).selectinload(Board.owner)
+            ).where(
+                BoardMember.user_id == user_id
+            ).order_by(
+                BoardMember.created_at.desc()
+            )
+        )
         return list(result.scalars().all())

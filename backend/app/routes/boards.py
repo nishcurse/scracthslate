@@ -7,6 +7,9 @@ from app.schemas.boards import CreateBoardRequest,BoardResponse,RenameBoardReque
 
 
 from app.schemas.boards import AddBoardMemberRequest, BoardMemberResponse, BoardMemberDetailResponse
+
+
+from app.schemas.boards import SharedBoardOwnerResponse, SharedBoardResponse
 from app.db.models import User
 
 from app.auth.dependencies import get_current_user
@@ -50,6 +53,17 @@ async def rename(
             detail="board not found",
         )
     return board
+
+@router.get(
+    "/shared",
+    response_model=list[SharedBoardResponse],
+)
+async def get_shared_boards(
+    current_user: User = Depends(get_current_user),
+):
+    return await boardService.get_shared_boards(
+        user_id=current_user.id,
+    )
 
 @router.delete("/{board_id}" ,description="delete board")
 async def delete_board(board_id : str , current_user : User = Depends(get_current_user)):

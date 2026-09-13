@@ -255,4 +255,27 @@ class BoardService:
                 }
                 for member in members
             ]
+    async def get_shared_boards(
+        self,
+        user_id: str,
+    ):
+        async with SessionLocal() as session:
+            memberships = await BoardMemberRepo.get_shared_boards(
+                session=session,
+                user_id=user_id,
+            )
+
+            return [
+                {
+                    "id": member.board.id,
+                    "title": member.board.title,
+                    "role": member.role,
+                    "owner": {
+                        "id": member.board.owner.id,
+                        "name": member.board.owner.name,
+                        "picture": member.board.owner.picture,
+                    },
+                }
+                for member in memberships
+            ]
 

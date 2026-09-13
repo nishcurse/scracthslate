@@ -2,12 +2,23 @@
 
 import React from "react";
 import { User } from "@/types/user";
+import {useAuthStore} from "@/stores/auth-store"
+import {removeAccessToken} from "@/auth/token"
+import {useRouter} from "next/navigation"
 
 type Props = {
   user: User;
 };
 
 export function DashboardHeader({ user }: Props) {
+  const router = useRouter();
+  const clear = useAuthStore((st) => st.clear);
+  const handleLogout = () => {
+    removeAccessToken();
+    clear();
+    router.push("/");
+  }; 
+
   return (
     <header className="sticky top-0 z-50 border-b-[3px] border-ink bg-paper">
       <nav className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-6">
@@ -60,6 +71,7 @@ export function DashboardHeader({ user }: Props) {
           <button
             type="button"
             className="font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-ink/60 transition-colors hover:text-ink"
+            onClick={handleLogout}
           >
             Logout
           </button>

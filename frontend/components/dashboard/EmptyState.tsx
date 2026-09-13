@@ -5,7 +5,7 @@ import { Icon } from "@iconify/react";
 
 type Props = {
   message?: string;
-  newModel: () => void;
+  newModel?: () => void;
 };
 
 export function EmptyState({
